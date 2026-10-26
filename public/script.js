@@ -679,37 +679,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // 1. Instantly construct and trigger WhatsApp link to prevent popup blocker
+            // 1. Instantly construct and trigger WhatsApp link directly in click/submit flow to prevent popup blocker
             const text = `*New Portfolio Message*%0A%0A*Name:* ${encodeURIComponent(name)}%0A*Email:* ${encodeURIComponent(email)}%0A*Message:* ${encodeURIComponent(message)}`;
             const whatsappUrl = `https://wa.me/Ayubabright1?s=t&text=${text}`;
             window.open(whatsappUrl, '_blank');
 
-            // 2. Concurrently dispatch payload to backend API to log & email directly to ayubagarba@savilinks.com
+            // 2. Concurrently dispatch payload to Netlify Forms (and fallback to Node backend /api/messages)
+            const netlifyPayload = new FormData(quickForm);
+            if (!netlifyPayload.get('form-name')) {
+                netlifyPayload.append('form-name', 'quick-message');
+            }
+            if (!netlifyPayload.get('name')) netlifyPayload.append('name', name);
+            if (!netlifyPayload.get('email')) netlifyPayload.append('email', email);
+            if (!netlifyPayload.get('message')) netlifyPayload.append('message', message);
+
             try {
-                await fetch('/api/messages', {
+                // Post to Netlify Form endpoint
+                await fetch('/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name,
-                        email,
-                        message,
-                        role: message,
-                        recipient: 'ayubagarba@savilinks.com'
-                    })
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams(netlifyPayload).toString()
                 });
             } catch (err) {
-                console.error('Email dispatch note:', err);
+                console.warn('Netlify form submission note:', err);
+                try {
+                    await fetch('/api/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name,
+                            email,
+                            message,
+                            role: message,
+                            recipient: 'ayubagarba@savilinks.com'
+                        })
+                    });
+                } catch (apiErr) {
+                    console.error('Fallback email API note:', apiErr);
+                }
             }
 
-            // 3. Show success confirmation, reset form, and dismiss modal
-            alert('Message sent successfully! Opening WhatsApp and dispatching email.');
+            // 3. Show instant confirmation feedback, reset form, and dismiss modal cleanly
+            const confirmationText = 'Message sent to WhatsApp & Netlify inbox!';
+            if (typeof window.showGlassToast === 'function') {
+                window.showGlassToast(confirmationText, '✓');
+            }
+            alert(confirmationText);
+
             quickForm.reset();
             if (btn) btn.textContent = 'Send Instant Message';
             if (typeof window.closeQuickMessageModal === 'function') {
                 window.closeQuickMessageModal();
-            }
-            if (typeof window.showGlassToast === 'function') {
-                window.showGlassToast('Thank you — message dispatched to email & WhatsApp!', '✓');
             }
         });
     }
