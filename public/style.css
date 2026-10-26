@@ -1894,8 +1894,10 @@ footer {
     display: none !important;
   }
 
-  /* Central Profile Card Separation */
-  .orbital-center-card {
+  /* Top Hub Card (Central Profile Card) on Mobile */
+  .orbital-center-card,
+  .node-hub {
+    order: 1 !important;
     position: relative !important;
     top: auto !important;
     left: auto !important;
@@ -1904,15 +1906,34 @@ footer {
     transform: none !important;
     width: 100% !important;
     max-width: 340px !important;
-    margin-top: 1.5rem !important;
-    margin-bottom: 1.5rem !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
     margin-left: auto !important;
     margin-right: auto !important;
+    padding: 1.5rem 1.25rem !important;
     box-sizing: border-box !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
   }
 
-  /* Mobile Orbital Node Stacking */
+  /* Explicit Flex Stacking Sequence for Mobile Cards */
+  .node-experience {
+    order: 2 !important;
+  }
+  .node-projects {
+    order: 3 !important;
+  }
+  .node-about {
+    order: 4 !important;
+  }
+  .node-connect {
+    order: 5 !important;
+  }
+  .node-stories {
+    order: 6 !important;
+  }
+
+  /* Mobile Orbital Node Stacking & Standardized Spacing */
   .orbital-node,
   .orbit-node {
     position: relative !important;
@@ -1924,6 +1945,9 @@ footer {
     width: 100% !important;
     max-width: 340px !important;
     margin: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0.75rem 1rem !important;
     display: flex !important;
     align-items: center !important;
     box-sizing: border-box !important;
@@ -1940,6 +1964,8 @@ footer {
     right: auto !important;
     bottom: auto !important;
     transform: none !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .node-experience:hover,
