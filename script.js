@@ -1,66 +1,525 @@
 /**
- * OFFICE OF AYUBA GARBA — BESPOKE ARCHITECTURAL CLIENT SCRIPTS
- * 3D Glassmorphic Perspective Tilt, Radial Ambient Gold Spotlight,
- * Interactive Certificate Viewer Modal, Navigation Tracking, and Form Handlers
+ * OFFICE OF AYUBA GARBA — DEEP-OBSIDIAN ORBITAL SPA ENGINE
+ * Client-Side Router, Dynamic Radial State Machine, Deep-Reader Engine,
+ * Architecture Case Studies, Certificate Inspector, and Form Gateways
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ========================================================
-    // 1. INTERACTIVE AMBIENT GOLD CURSOR SPOTLIGHT
-    // ========================================================
+    // =========================================================================
+    // 1. LIGHTWEIGHT CLIENT-SIDE SPA ROUTER & STATE MACHINE
+    // =========================================================================
+    const routes = {
+        '': { viewId: 'view-hub', title: 'Ayuba Garba • AI Automation Specialist & Systems Engineer', accent: null },
+        'experience': { viewId: 'view-experience', title: 'Experience • Ayuba Garba', accent: 'experience' },
+        'projects': { viewId: 'view-projects', title: 'Projects & Systems • Ayuba Garba', accent: 'projects' },
+        'about': { viewId: 'view-about', title: 'About & Philosophy • Ayuba Garba', accent: 'about' },
+        'stories': { viewId: 'view-stories', title: 'Stories & Series • Ayuba Garba', accent: 'stories' },
+        'connect': { viewId: 'view-connect', title: 'Connect & Advisory • Ayuba Garba', accent: 'connect' }
+    };
+
+    const views = document.querySelectorAll('.spa-view');
+    const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-item');
+    const internalNavbar = document.getElementById('internal-navbar');
+    const fabTrigger = document.getElementById('fab-contact-trigger');
+
+    function resolveRoute() {
+        const rawHash = window.location.hash.replace(/^#\/?/, '').trim();
+        const routeKey = rawHash.split('/')[0] || '';
+        return routes[routeKey] ? routeKey : '';
+    }
+
+    function switchView(routeKey) {
+        const routeInfo = routes[routeKey] || routes[''];
+
+        // 1. Update Document Title
+        document.title = routeInfo.title;
+
+        // 2. Switch View Visibility with Smooth Opacity/Scale Transition
+        views.forEach(v => {
+            if (v.id === routeInfo.viewId) {
+                v.style.display = 'block';
+                // Trigger reflow for transition
+                requestAnimationFrame(() => {
+                    v.classList.add('active');
+                });
+            } else {
+                v.classList.remove('active');
+                v.style.display = 'none';
+            }
+        });
+
+        // 3. Update Nav Links Active State
+        navLinks.forEach(link => {
+            const linkRoute = link.getAttribute('data-route');
+            if (linkRoute === routeKey) {
+                link.classList.add('active');
+                if (routeInfo.accent) {
+                    link.classList.add(`active-${routeInfo.accent}`);
+                }
+            } else {
+                link.classList.remove('active', 'active-experience', 'active-projects', 'active-about', 'active-stories', 'active-connect');
+            }
+        });
+
+        // 4. Adapt Floating / Navbar Presentation
+        if (internalNavbar) {
+            if (routeKey === '') {
+                // On Hub Landing: Keep navbar minimalist and unobtrusive
+                internalNavbar.style.opacity = '0.9';
+            } else {
+                internalNavbar.style.opacity = '1';
+            }
+        }
+
+        // 5. FAB button visibility
+        if (fabTrigger) {
+            if (routeKey === 'connect') {
+                fabTrigger.style.display = 'none';
+            } else {
+                fabTrigger.style.display = 'flex';
+            }
+        }
+
+        // Close mobile drawer if open
+        const mobileDrawer = document.getElementById('mobile-drawer');
+        if (mobileDrawer && mobileDrawer.classList.contains('open')) {
+            mobileDrawer.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Close reader view if returning to stories index or navigating away
+        if (routeKey !== 'stories') {
+            closeStoryReader();
+        }
+
+        // Smooth scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Hash Change Event & Initial Load
+    window.addEventListener('hashchange', () => {
+        const targetRoute = resolveRoute();
+        switchView(targetRoute);
+    });
+
+    // Initialize Router
+    const initialRoute = resolveRoute();
+    switchView(initialRoute);
+
+    // =========================================================================
+    // 2. INTERACTIVE CURSOR AMBIENT SPOTLIGHT
+    // =========================================================================
     const updateAmbientSpotlight = (e) => {
         document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
         document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
     };
     window.addEventListener('mousemove', updateAmbientSpotlight, { passive: true });
 
-    // ========================================================
-    // 2. DYNAMIC 3D PERSPECTIVE TILT ENGINE ([data-tilt] & .card-3d)
-    // ========================================================
-    const tiltElements = document.querySelectorAll('.card-3d, [data-tilt]');
-    const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    // =========================================================================
+    // 3. MOBILE NAVIGATION DRAWER TOGGLE
+    // =========================================================================
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileDrawer = document.getElementById('mobile-drawer');
 
-    if (!isTouchDevice && tiltElements.length > 0) {
-        tiltElements.forEach((el) => {
-            let isHovered = false;
-
-            el.addEventListener('mouseenter', () => {
-                isHovered = true;
-                el.style.transition = 'transform 0.08s ease-out';
-            });
-
-            el.addEventListener('mousemove', (e) => {
-                if (!isHovered) return;
-                const rect = el.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-
-                // Max tilt angle: 6 degrees for subtle, executive physical feel
-                const rotateX = ((y - centerY) / centerY) * -6;
-                const rotateY = ((x - centerX) / centerX) * 6;
-
-                el.style.transform = `perspective(1100px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.015, 1.015, 1.015)`;
-                
-                // Track specular light spot
-                el.style.setProperty('--card-mouse-x', `${x}px`);
-                el.style.setProperty('--card-mouse-y', `${y}px`);
-            });
-
-            el.addEventListener('mouseleave', () => {
-                isHovered = false;
-                el.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                el.style.transform = 'perspective(1100px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-            });
+    if (mobileMenuBtn && mobileDrawer) {
+        mobileMenuBtn.addEventListener('click', () => {
+            const isOpen = mobileDrawer.classList.contains('open');
+            if (isOpen) {
+                mobileDrawer.classList.remove('open');
+                document.body.style.overflow = '';
+            } else {
+                mobileDrawer.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
         });
     }
 
-    // ========================================================
-    // 3. SLEEK GLASS TOAST NOTIFICATION ENGINE
-    // ========================================================
+    // =========================================================================
+    // 4. EXPERIENCE VIEW: TIMELINE READ MORE ACCORDION
+    // =========================================================================
+    document.querySelectorAll('[data-accordion]').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const targetId = trigger.getAttribute('data-accordion');
+            const targetContent = document.getElementById(targetId);
+            if (!targetContent) return;
+
+            const isOpen = targetContent.classList.contains('open');
+            if (isOpen) {
+                targetContent.classList.remove('open');
+                trigger.innerHTML = '<span>Read more</span> <span>↓</span>';
+            } else {
+                targetContent.classList.add('open');
+                trigger.innerHTML = '<span>Collapse details</span> <span>↑</span>';
+            }
+        });
+    });
+
+    // =========================================================================
+    // 5. PROJECTS VIEW: CATEGORY FILTER TABS
+    // =========================================================================
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const projectCards = document.querySelectorAll('.project-card');
+
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filterValue = btn.getAttribute('data-filter');
+
+            projectCards.forEach(card => {
+                const category = card.getAttribute('data-category');
+                if (filterValue === 'all' || category === filterValue) {
+                    card.style.display = 'flex';
+                    requestAnimationFrame(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    });
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(8px)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 200);
+                }
+            });
+        });
+    });
+
+    // =========================================================================
+    // 6. STORIES VIEW: SUB-TABS & DEEP-READER ENGINE
+    // =========================================================================
+    const storiesTabButtons = document.querySelectorAll('.stories-tab-btn');
+    const tabSeriesContent = document.getElementById('tab-series-content');
+    const tabArticlesContent = document.getElementById('tab-articles-content');
+
+    storiesTabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            storiesTabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const tab = btn.getAttribute('data-stories-tab');
+            if (tab === 'series') {
+                tabSeriesContent.classList.remove('hidden');
+                tabArticlesContent.classList.add('hidden');
+            } else {
+                tabSeriesContent.classList.add('hidden');
+                tabArticlesContent.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Story Registry
+    const STORY_REGISTRY = {
+        'waypoint-1': {
+            series: 'Lessons from WayPoint: Building Resilient Autonomous Systems • Ep 01',
+            title: 'When Microservices Crack Under Pressure: The Myth of Loose Coupling',
+            readTime: '7 min read • Technical Post-Mortem',
+            body: `
+                <p>In mid-2023, during an intense infrastructure migration for a high-volume client, the architecture team followed conventional orthodoxy: decompose the monolith into eleven fine-grained microservices communicate over HTTP REST endpoints.</p>
+                <p>Within forty-eight hours of deployment under peak traffic, the cascading failure began. Latency did not increase linearly—it exploded exponentially. A single client checkout request was generating upwards of twenty-eight internal HTTP round-trips across network namespaces. When one downstream inventory service experienced an 80ms garbage collection pause, worker thread pools across upstream gateways dried up completely.</p>
+                
+                <div class="article-callout">
+                    <strong>Key Architectural Takeaway:</strong>
+                    <p class="mt-1 mb-0">Microservices do not eliminate complexity; they distribute it across unreliable networks. Do not break a system into separate network hops until you have bounded domain contexts with strictly decoupled data ownership.</p>
+                </div>
+
+                <h2>The Architecture of Recovery</h2>
+                <p>We halted the bleeding by introducing three critical architectural invariants:</p>
+                <ol class="deliverables-list">
+                    <li><strong>Asynchronous Ingress Queues:</strong> Moving synchronous HTTP remote calls into persistent, write-ahead message queues with idempotent retry loops.</li>
+                    <li><strong>Co-locating Critical Path Services:</strong> Re-integrating the checkout and reservation engines into a shared memory Go process, eliminating 22 network hops per transaction.</li>
+                    <li><strong>Aggressive Circuit Breaking:</strong> Embedding client-side token bucket rate limits and fast-fail circuit breakers to prevent thundering herd crashes.</li>
+                </ol>
+                <p>The lesson was indelibly carved: architecture is the discipline of choosing which failure modes you are willing to manage.</p>
+            `
+        },
+        'waypoint-2': {
+            series: 'Lessons from WayPoint: Building Resilient Autonomous Systems • Ep 02',
+            title: 'The Fallacy of Eventual Consistency in Financial Corridors',
+            readTime: '6 min read • Concurrency Deep Dive',
+            body: `
+                <p>Eventual consistency is a seductive design pattern. Cloud vendors promote it heavily: decouple your writes, broadcast events to distributed read-replicas, and let the system "eventually" converge.</p>
+                <p>However, when dealing with double-entry ledgers, currency conversions, or limited physical inventory, eventual consistency is frequently a polite euphemism for data corruption. In high-concurrency environments, that 50ms propagation delay is an eternity during which users can spend the same balance twice or purchase the last remaining item simultaneously.</p>
+                
+                <div class="article-callout">
+                    <strong>The Mathematical Law:</strong>
+                    <p class="mt-1 mb-0">Financial balances must adhere to strict ACID conservation. Money cannot be created or destroyed during a transfer—it can only move between accounts with exact debit and credit symmetry.</p>
+                </div>
+
+                <h2>Deterministic Row-Locking in Rust</h2>
+                <p>To solve the dual problems of race conditions and database deadlocks without degrading throughput, we built our ledger engine in Rust with deterministic lock sequencing:</p>
+                <p>When transferring funds from Account A to Account B, if another concurrent process is transferring from Account B to Account A, traditional database locks will lock A and B simultaneously in reverse order, creating a deadlock. By enforcing an invariant that locks are ALWAYS acquired in ascending numerical order of Account ID, circular lock dependency cycles become mathematically impossible.</p>
+            `
+        },
+        'waypoint-3': {
+            series: 'Lessons from WayPoint: Building Resilient Autonomous Systems • Ep 03',
+            title: 'Designing Self-Healing Autonomous Business Workflows',
+            readTime: '8 min read • AI & Systems Integration',
+            body: `
+                <p>The promise of AI automation often stumbles when confronted with unhandled edge cases in the real world: an API endpoint returns a 502 bad gateway, an email parser receives malformed PDF encodings, or a CRM web-hook payload drops key customer identifiers.</p>
+                <p>If an automation pipeline terminates or produces hallucinated data upon the first error, it is not an intelligent system—it is an operational liability.</p>
+
+                <h2>The 3 Pillars of Self-Healing Automation</h2>
+                <ol class="deliverables-list">
+                    <li><strong>Idempotency By Design:</strong> Every automation step emits a unique cryptographic hash derived from its payload. If a network interruption forces a retry, the step verifies against the state store and skips redundant execution.</li>
+                    <li><strong>Compensating Saga Transactions:</strong> When a multi-stage workflow fails on step 4 of 5, the engine executes compensatory reversal actions for steps 1 through 3 rather than leaving orphaned records in downstream databases.</li>
+                    <li><strong>Deterministic Schema Envelopes:</strong> LLMs are strictly quarantined behind Pydantic / Zod schema validators. If the model outputs invalid JSON, it is automatically re-prompted with the validation error diff until structural compliance is met.</li>
+                </ol>
+            `
+        },
+        'journey-1': {
+            series: '90-Day Appreciation Journey: The Discipline of Deep Engineering • Ep 01',
+            title: 'Radical Focus in an Age of Fragmented Attention',
+            readTime: '5 min read • Personal Philosophy',
+            body: `
+                <p>Early in my engineering journey, I believed productivity meant answering every Slack ping within sixty seconds, having twelve browser tabs open, and jumping between code reviews, bug fixes, and feature spikes simultaneously.</p>
+                <p>The result was superficial velocity. Features shipped quickly, but subtle concurrency bugs, race conditions, and unoptimized queries lingered beneath the surface.</p>
+
+                <h2>The 4-Hour Deep Work Standard</h2>
+                <p>True architectural breakthroughs happen only during sustained, uninterrupted cognitive flow. Complex systems cannot be held in human working memory when interrupted every fifteen minutes.</p>
+                <p>Structuring engineering days into protected four-hour deep blocks transformed my output. Code complexity dropped, test coverage became comprehensive, and systems ran in production for months without a single panic.</p>
+            `
+        },
+        'journey-2': {
+            series: '90-Day Appreciation Journey: The Discipline of Deep Engineering • Ep 02',
+            title: 'What Writing 10,000 Lines of C++ Taught Me About Silicon',
+            readTime: '8 min read • Systems Craftsmanship',
+            body: `
+                <p>High-level garbage-collected languages provide immense developer velocity. But they also shield engineers from the physical reality of the machine: CPU caches, branch predictors, pointer alignments, and heap allocation penalties.</p>
+                <p>Building high-frequency algorithmic trading systems in MQL5 and C++ stripped away those abstractions. When a market tick arrives, an allocation on the heap introduces memory manager locks and potential latency jitter that will miss the market order book queue.</p>
+
+                <div class="article-callout">
+                    <strong>The Zero-Allocation Principle:</strong>
+                    <p class="mt-1 mb-0">Pre-allocate all ring buffers, queues, and order state structures at system startup. The critical path execution loop must perform zero memory allocations.</p>
+                </div>
+            `
+        },
+        'journey-3': {
+            series: '90-Day Appreciation Journey: The Discipline of Deep Engineering • Ep 03',
+            title: 'The Architecture of Mastery: Beyond Framework Churn',
+            readTime: '6 min read • Career Architecture',
+            body: `
+                <p>Every eighteen months, the frontend and backend ecosystems introduce a new "revolutionary" framework. Junior engineers often fall into the trap of learning API surface areas rather than fundamental principles.</p>
+                <p>Frameworks come and go; computer science fundamentals remain invariant. A B-Tree index behaves identically whether queried via PostgreSQL, SQLite, or an in-memory cache. TCP flow control and packet fragmentation govern network transfers regardless of whether you call it REST, gRPC, or WebSockets.</p>
+            `
+        },
+        'article-acid': {
+            series: 'Technical Deep Dive • Systems Essay',
+            title: 'Designing ACID Ledgers with Deterministic Row Locking in Rust',
+            readTime: '9 min read • Architecture Essay',
+            body: `
+                <p>Relational databases provide ACID transaction guarantees, but when concurrent threads attempt to mutate identical pairs of rows in reverse order, deadlocks are inevitable. This essay breaks down how we engineered a zero-deadlock ledger engine in Rust using deterministic ID sorting, row-level locks, and balanced debit-credit state invariance.</p>
+            `
+        },
+        'article-ai': {
+            series: 'Technical Deep Dive • AI Architecture',
+            title: 'Bridging LLMs and Enterprise APIs: The Determinism Gap',
+            readTime: '7 min read • AI Architecture',
+            body: `
+                <p>Probabilistic reasoning is fantastic for synthesis, classification, and drafting. It is catastrophic when executing credit card transactions or updating ERP inventories. Learn how to wrap LLM agentic reasoning in deterministic transaction envelopes with strict schema validation.</p>
+            `
+        },
+        'article-quant': {
+            series: 'Technical Deep Dive • Quantitative Logic',
+            title: 'The Mathematics of Algorithmic Trailing Stops & Volatility Filters',
+            readTime: '8 min read • Quantitative Systems',
+            body: `
+                <p>Why continuous trailing stops get chopped out during normal market noise, and why stepped trailing stops combined with multi-timeframe ATR volatility bands mathematically outperform retail risk models.</p>
+            `
+        }
+    };
+
+    window.openStoryReader = function(storyKey) {
+        const story = STORY_REGISTRY[storyKey];
+        if (!story) return;
+
+        const storiesIndexView = document.getElementById('stories-index-view');
+        const readerView = document.getElementById('reader-view');
+        const readerSeriesTag = document.getElementById('reader-series-tag');
+        const readerTitle = document.getElementById('reader-title');
+        const readerReadtime = document.getElementById('reader-readtime');
+        const readerBody = document.getElementById('reader-body');
+
+        if (readerSeriesTag) readerSeriesTag.textContent = story.series;
+        if (readerTitle) readerTitle.textContent = story.title;
+        if (readerReadtime) readerReadtime.textContent = story.readTime;
+        if (readerBody) readerBody.innerHTML = story.body;
+
+        if (storiesIndexView && readerView) {
+            storiesIndexView.style.display = 'none';
+            readerView.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    window.closeStoryReader = function() {
+        const storiesIndexView = document.getElementById('stories-index-view');
+        const readerView = document.getElementById('reader-view');
+        if (storiesIndexView && readerView) {
+            readerView.classList.remove('active');
+            storiesIndexView.style.display = 'block';
+        }
+    };
+
+    // =========================================================================
+    // 7. CONNECT VIEW: STRATEGIC BRIEF FORM HANDLER & HUD CONFIRMATION
+    // =========================================================================
+    const connectForm = document.getElementById('connect-page-form');
+    const connectFormContainer = document.getElementById('contact-form-container');
+    const connectHudCard = document.getElementById('connect-hud-card');
+    const resetConnectBtn = document.getElementById('reset-connect-form');
+    const connectSubmitBtn = document.getElementById('connect-submit-btn');
+    const connectStatus = document.getElementById('connect-form-status');
+
+    if (connectForm) {
+        connectForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            connectSubmitBtn.disabled = true;
+            connectSubmitBtn.style.opacity = '0.6';
+            connectSubmitBtn.textContent = 'Transmitting brief...';
+            if (connectStatus) connectStatus.replaceChildren();
+
+            const formData = new FormData(connectForm);
+            if (!formData.get('form-name')) {
+                formData.append('form-name', 'contact');
+            }
+
+            try {
+                // Post to Netlify Form / Server
+                const response = await fetch('/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams(formData).toString()
+                });
+
+                if (!response.ok) {
+                    throw new Error('Edge dispatch returned status ' + response.status);
+                }
+
+                connectForm.reset();
+                connectSubmitBtn.disabled = false;
+                connectSubmitBtn.style.opacity = '1';
+                connectSubmitBtn.textContent = 'Transmit Strategic Brief';
+
+                if (connectFormContainer && connectHudCard) {
+                    connectFormContainer.classList.add('hidden');
+                    connectHudCard.classList.remove('hidden');
+                }
+
+                showGlassToast('Thank you — your message has been received.', '✓');
+            } catch (err) {
+                console.warn('Fallback: Posting to /api/messages...', err);
+                try {
+                    await fetch('/api/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: formData.get('name'),
+                            email: formData.get('email'),
+                            role: (formData.get('scope') || 'General') + ': ' + (formData.get('message') || '')
+                        })
+                    });
+
+                    connectForm.reset();
+                    connectSubmitBtn.disabled = false;
+                    connectSubmitBtn.style.opacity = '1';
+                    connectSubmitBtn.textContent = 'Transmit Strategic Brief';
+
+                    if (connectFormContainer && connectHudCard) {
+                        connectFormContainer.classList.add('hidden');
+                        connectHudCard.classList.remove('hidden');
+                    }
+                    showGlassToast('Thank you — your message has been received.', '✓');
+                } catch (fallbackErr) {
+                    if (connectStatus) {
+                        const alertBox = document.createElement('div');
+                        alertBox.className = 'p-3.5 rounded-xl bg-red-950/80 border border-red-500/40 text-red-300 text-xs text-left';
+                        alertBox.innerHTML = '<strong>Dispatch Interrupted:</strong> Unable to connect to edge API. Please email directly to <strong>ayubagarba.tech@gmail.com</strong>.';
+                        connectStatus.replaceChildren(alertBox);
+                    }
+                    connectSubmitBtn.disabled = false;
+                    connectSubmitBtn.style.opacity = '1';
+                    connectSubmitBtn.textContent = 'Transmit Strategic Brief';
+                }
+            }
+        });
+
+        if (resetConnectBtn) {
+            resetConnectBtn.addEventListener('click', () => {
+                if (connectHudCard && connectFormContainer) {
+                    connectHudCard.classList.add('hidden');
+                    connectFormContainer.classList.remove('hidden');
+                    const nameInput = document.getElementById('connect-name');
+                    if (nameInput) nameInput.focus();
+                }
+            });
+        }
+    }
+
+    // =========================================================================
+    // 8. QUICK MESSAGE FLOATING MODAL
+    // =========================================================================
+    const quickModal = document.getElementById('quickMessageModal');
+    const quickModalClose = document.getElementById('quickMessageClose');
+    const quickForm = document.getElementById('quick-message-form');
+
+    if (fabTrigger && quickModal) {
+        fabTrigger.addEventListener('click', () => {
+            quickModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            const nameInp = document.getElementById('qm-name');
+            if (nameInp) nameInp.focus();
+        });
+    }
+
+    if (quickModalClose && quickModal) {
+        quickModalClose.addEventListener('click', () => {
+            quickModal.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+
+        quickModal.addEventListener('click', (e) => {
+            if (e.target === quickModal) {
+                quickModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+
+    if (quickForm) {
+        quickForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('qm-submit-btn');
+            if (btn) btn.textContent = 'Sending...';
+
+            const name = document.getElementById('qm-name').value;
+            const email = document.getElementById('qm-email').value;
+            const message = document.getElementById('qm-message').value;
+
+            try {
+                await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, role: message })
+                });
+            } catch (err) {
+                console.log('Recorded fallback payload.');
+            }
+
+            quickForm.reset();
+            if (btn) btn.textContent = 'Send Instant Message';
+            if (quickModal) quickModal.classList.remove('active');
+            document.body.style.overflow = '';
+            showGlassToast('Thank you — your message has been received.', '✓');
+        });
+    }
+
+    // =========================================================================
+    // 9. GLASS TOAST NOTIFICATION ENGINE
+    // =========================================================================
     window.showGlassToast = (message, icon = '✦') => {
         const existingToast = document.querySelector('.glass-toast');
         if (existingToast) existingToast.remove();
@@ -69,11 +528,18 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.className = 'glass-toast';
         toast.setAttribute('role', 'status');
         toast.setAttribute('aria-live', 'polite');
-        toast.innerHTML = `
-            <span class="text-sm font-semibold text-gold-metallic">${icon}</span>
-            <span class="tracking-tight text-white">${message}</span>
-        `;
-        
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'text-sm font-semibold text-cyan-400';
+        iconSpan.textContent = icon;
+
+        const msgSpan = document.createElement('span');
+        msgSpan.className = 'tracking-tight text-white';
+        msgSpan.textContent = message;
+
+        toast.appendChild(iconSpan);
+        toast.appendChild(msgSpan);
+
         document.body.appendChild(toast);
 
         requestAnimationFrame(() => {
@@ -83,17 +549,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 400);
-        }, 4500);
+        }, 4000);
     };
 
-    // ========================================================
-    // 4. CERTIFICATE MODAL DIALOG ENGINE
-    // ========================================================
+    // =========================================================================
+    // 10. CERTIFICATE MODAL DIALOG ENGINE
+    // =========================================================================
     const certModalOverlay = document.getElementById('certModalOverlay');
-    const certModalContainer = document.getElementById('certModalContainer');
     const certModalClose = document.getElementById('certModalClose');
 
-    // Certificate Records Registry
     const CERTIFICATE_DATA = {
         'walmart': {
             title: 'Advanced Software Engineering (Job Simulation)',
@@ -143,15 +607,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    let lastFocusedElement = null;
-
-    const openCertificateModal = (certKey) => {
+    window.openCertificateModal = (certKey) => {
         const cert = CERTIFICATE_DATA[certKey];
         if (!cert || !certModalOverlay) return;
 
-        lastFocusedElement = document.activeElement;
-
-        // Populate modal fields
         const modalImg = document.getElementById('certModalImage');
         const modalTitle = document.getElementById('certModalTitle');
         const modalIssuer = document.getElementById('certModalIssuer');
@@ -171,8 +630,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalCompetencies) {
             modalCompetencies.innerHTML = cert.competencies.map(comp => 
-                `<span class="text-xs font-mono px-3 py-1 rounded bg-[#12141a] border border-[#d4af37]/30 text-gold-pale flex items-center gap-1.5">
-                    <span class="text-gold-light">✦</span> ${comp}
+                `<span class="text-xs font-mono px-2.5 py-1 rounded bg-[#12141a] border border-emerald-500/30 text-emerald-300 flex items-center gap-1.5">
+                    <span class="text-emerald-400">✦</span> ${comp}
                 </span>`
             ).join('');
         }
@@ -185,18 +644,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Verification Codes</div>
                         <div class="flex flex-wrap gap-2 items-center">
                             <span class="text-xs font-mono px-3 py-1.5 rounded bg-[#0a0c10] border border-white/10 text-neutral-300">
-                                Enrolment: <strong class="text-gold-light font-bold">${cert.enrolmentCode}</strong>
+                                Enrolment: <strong class="text-emerald-300 font-bold">${cert.enrolmentCode}</strong>
                             </span>
-                            <button class="copy-badge-btn text-[11px] px-2.5 py-1.5 rounded transition-all" onclick="navigator.clipboard.writeText('${cert.enrolmentCode}'); showGlassToast('Enrolment code copied: ${cert.enrolmentCode}', '✓');">
+                            <button class="text-[11px] px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300" onclick="navigator.clipboard.writeText('${cert.enrolmentCode}'); showGlassToast('Enrolment code copied: ${cert.enrolmentCode}', '✓');">
                                 Copy Enrolment
-                            </button>
-                        </div>
-                        <div class="flex flex-wrap gap-2 items-center pt-1">
-                            <span class="text-xs font-mono px-3 py-1.5 rounded bg-[#0a0c10] border border-white/10 text-neutral-300">
-                                User Code: <strong class="text-gold-light font-bold">${cert.userCode}</strong>
-                            </span>
-                            <button class="copy-badge-btn text-[11px] px-2.5 py-1.5 rounded transition-all" onclick="navigator.clipboard.writeText('${cert.userCode}'); showGlassToast('User code copied: ${cert.userCode}', '✓');">
-                                Copy User Code
                             </button>
                         </div>
                     </div>
@@ -204,13 +655,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (cert.verificationCode) {
                 html += `
                     <div class="space-y-2">
-                        <div class="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Verification Code / ID</div>
+                        <div class="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Verification ID</div>
                         <div class="flex flex-wrap gap-2 items-center">
                             <span class="text-xs font-mono px-3 py-1.5 rounded bg-[#0a0c10] border border-white/10 text-neutral-300 break-all">
-                                ID: <strong class="text-gold-light font-bold">${cert.verificationCode}</strong>
+                                ID: <strong class="text-emerald-300 font-bold">${cert.verificationCode}</strong>
                             </span>
-                            <button class="copy-badge-btn text-[11px] px-2.5 py-1.5 rounded transition-all" onclick="navigator.clipboard.writeText('${cert.verificationCode}'); showGlassToast('Verification ID copied to clipboard', '✓');">
-                                Copy Code
+                            <button class="text-[11px] px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300" onclick="navigator.clipboard.writeText('${cert.verificationCode}'); showGlassToast('Verification ID copied to clipboard', '✓');">
+                                Copy ID
                             </button>
                         </div>
                     </div>
@@ -220,77 +671,52 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cert.verifyUrl) {
                 html += `
                     <div class="pt-3">
-                        <a href="${cert.verifyUrl}" target="_blank" rel="noopener noreferrer" class="btn-gold-secondary text-xs px-4 py-2 rounded-full inline-flex items-center gap-1.5">
-                            <span>Open Official Verification Gateway</span>
-                            <svg class="w-3.5 h-3.5 text-gold-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
+                        <a href="${cert.verifyUrl}" target="_blank" rel="noopener noreferrer" class="text-xs px-4 py-2 rounded-full inline-flex items-center gap-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-200">
+                            <span>Open Official Verification Gateway ↗</span>
                         </a>
                     </div>
                 `;
             }
-
             modalVerificationDetails.innerHTML = html;
         }
 
-        // Show modal
         certModalOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
-        if (certModalClose) certModalClose.focus();
     };
 
     const closeCertificateModal = () => {
         if (!certModalOverlay) return;
         certModalOverlay.classList.remove('active');
         document.body.style.overflow = '';
-        if (lastFocusedElement) {
-            lastFocusedElement.focus();
-        }
     };
 
-    // Card trigger listeners
     document.querySelectorAll('[data-cert-key]').forEach(trigger => {
         trigger.addEventListener('click', (e) => {
             e.preventDefault();
             const certKey = trigger.getAttribute('data-cert-key');
-            openCertificateModal(certKey);
+            window.openCertificateModal(certKey);
         });
     });
 
-    // Close button click
-    if (certModalClose) {
-        certModalClose.addEventListener('click', closeCertificateModal);
-    }
-
-    // Backdrop click dismiss
+    if (certModalClose) certModalClose.addEventListener('click', closeCertificateModal);
     if (certModalOverlay) {
         certModalOverlay.addEventListener('click', (e) => {
-            if (e.target === certModalOverlay) {
-                closeCertificateModal();
-            }
+            if (e.target === certModalOverlay) closeCertificateModal();
         });
     }
 
-    // Keyboard ESC listener
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && certModalOverlay && certModalOverlay.classList.contains('active')) {
-            closeCertificateModal();
-        }
-    });
-
-    // ========================================================
-    // 4B. INTERACTIVE ARCHITECTURAL CASE STUDY VIEWER ENGINE
-    // ========================================================
+    // =========================================================================
+    // 11. CASE STUDY ARCHITECTURE MODAL ENGINE
+    // =========================================================================
     const caseModalOverlay = document.getElementById('caseStudyModalOverlay');
     const caseModalClose = document.getElementById('caseStudyModalClose');
-    let lastCaseFocusedElement = null;
 
     const CASE_STUDY_DATA = {
         'awsoli': {
             tag: 'PRODUCTION PLATFORM 01',
             domain: 'GLOBAL EDGE & HIGH-AVAILABILITY CLOUD',
             title: 'Awsoli: Global Edge Optimization & Dynamic Caching',
-            summary: 'Engineered for rapid non-blocking delivery across global clients. Implements multi-tiered Cloudflare Anycast edge routing, AVIF/WebP image pipeline transformation, sub-second TTFB, and hardened DNS failover guaranteeing 99.99% availability.',
+            summary: 'Engineered for rapid non-blocking delivery across global clients. Implements multi-tiered Cloudflare Anycast edge routing, dynamic image transformation, sub-second TTFB, and hardened DNS failover guaranteeing 99.99% availability.',
             liveUrl: 'https://awsoli.org/',
             metrics: [
                 { label: 'Global Edge TTFB', val: '<120ms' },
@@ -300,29 +726,25 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             pipeline: [
                 { step: '01', title: 'DNS Anycast Ingress', desc: 'Anycast routes visitor to nearest global Point of Presence (<25ms edge hop).' },
-                { step: '02', title: 'Edge Worker Filter', desc: 'Headers sanitized, CSP headers injected, dynamic WebP/AVIF format negotiated.' },
+                { step: '02', title: 'Edge Worker Filter', desc: 'Headers sanitized, CSP headers injected, dynamic WebP format negotiated.' },
                 { step: '03', title: 'Origin Shield Cache', desc: 'Tiered cache prevents origin stampedes using stale-while-revalidate policies.' },
                 { step: '04', title: 'Zero-CLS Render', desc: 'Optimized typography glyphs & critical CSS render above-the-fold content immediately.' }
             ],
             ingressDesc: 'Ingress traffic is governed via Cloudflare Anycast routing across 300+ global edge locations. Incoming HTTP/3 requests undergo TLS 1.3 zero-round-trip resumption (0-RTT), stripping unneeded cookies on static assets to minimize network packet payload sizes.',
-            persistenceDesc: 'Static assets are compiled with immutable content-hash digests and served with multi-tier edge cache-control policies (public, max-age=31536000, immutable). Origin requests fallback automatically through redundant geo-replicated availability zones.',
+            persistenceDesc: 'Static assets are compiled with immutable content-hash digests and served with multi-tier edge cache-control policies. Origin requests fallback automatically through redundant availability zones.',
             stressNotes: [
                 '✦ Stress-tested under simulated 15,000 req/sec traffic spikes with zero origin degradation.',
                 '✦ Global CDN hit ratio maintained above 96.4% across desktop, tablet, and mobile agents.',
-                '✦ Automated origin failover tested with simulated regional network disconnects, yielding zero user-facing 5xx errors.'
+                '✦ Automated origin failover tested with simulated network disconnects, yielding zero user-facing 5xx errors.'
             ],
             decisions: [
                 {
                     title: 'Edge-First Asset Pipelines vs Traditional Monolith Hosting',
-                    rationale: 'Offloading dynamic compression (AVIF, WebP) and caching to edge workers reduced origin compute demands by 84% while cutting mobile bandwidth consumption by 78%.'
-                },
-                {
-                    title: 'Pre-warmed Font Subsetting vs Full Typography Bundles',
-                    rationale: 'Subsetting font glyphs to strictly required Latin code points eliminated Flash of Unstyled Text (FOUT) on mobile devices over constrained cellular corridors.'
+                    rationale: 'Offloading dynamic compression (WebP) and caching to edge workers reduced origin compute demands by 84% while cutting mobile bandwidth consumption by 78%.'
                 },
                 {
                     title: 'Immutable Cache-Busting vs Query String Versioning',
-                    rationale: 'Using sha256 content hashes in filenames allows infinite edge caching without risk of stale asset contamination after deployments.'
+                    rationale: 'Using content hashes in filenames allows infinite edge caching without risk of stale asset contamination after deployments.'
                 }
             ],
             techStack: [
@@ -331,7 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 { name: 'HTML5 / Modern CSS', role: 'Zero-layout-shift responsive semantic UI structure' },
                 { name: 'Netlify Edge', role: 'Atomic automated continuous deployment and branch previews' }
             ],
-            securityPosture: 'Hardened HTTP headers including Strict-Transport-Security (HSTS), Content-Security-Policy (CSP), X-Frame-Options: DENY, and X-Content-Type-Options: nosniff are injected at the edge, mitigating XSS, clickjacking, and MIME confusion attacks.'
+            securityPosture: 'Hardened HTTP headers including Strict-Transport-Security (HSTS), Content-Security-Policy (CSP), and X-Frame-Options: DENY are injected at the edge, mitigating XSS and clickjacking.'
         },
         'taila': {
             tag: 'PRODUCTION PLATFORM 02',
@@ -347,38 +769,28 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             pipeline: [
                 { step: '01', title: 'TLS Ingress & Auth', desc: 'Go API proxy validates JWT session claims and terminates TLS connections.' },
-                { step: '02', title: 'Token Bucket Rate Limit', desc: 'Redis sliding-window rate limit prevents brute-force bot sweeps and checkout abuse.' },
-                { step: '03', title: 'Async Worker Queue', desc: 'Goroutines handle inventory reservations, product metadata, and payment webhooks.' },
+                { step: '02', title: 'Token Bucket Rate Limit', desc: 'Redis sliding-window rate limit prevents brute-force bot sweeps.' },
+                { step: '03', title: 'Async Worker Queue', desc: 'Goroutines handle inventory reservations and payment webhooks.' },
                 { step: '04', title: 'Partitioned DB Commit', desc: 'PostgreSQL read-replica cluster applies optimistic lock state transitions.' }
             ],
-            ingressDesc: 'Clients communicate via HTTP/2 and WebSocket endpoints. Ingress traffic is load-balanced across stateless Go instances running lightweight goroutine worker pools. Request bodies are validated against strict JSON schemas before being dispatched to internal handlers.',
-            persistenceDesc: 'Read-heavy product catalogs are cached in Redis clusters with automated cache invalidation upon inventory updates. Financial and checkout state transitions are written to PostgreSQL with strict ACID transaction blocks and connection pooling via PgBouncer.',
+            ingressDesc: 'Clients communicate via HTTP/2 and WebSocket endpoints. Ingress traffic is load-balanced across stateless Go instances running lightweight goroutine worker pools.',
+            persistenceDesc: 'Read-heavy product catalogs are cached in Redis clusters with automated cache invalidation upon inventory updates. Financial state transitions are written to PostgreSQL with strict ACID blocks.',
             stressNotes: [
                 '✦ Benchmarked at 4,500 concurrent requests/sec with p99 latency remaining comfortably below 160ms.',
-                '✦ Zero race conditions detected during simulated simultaneous purchases of last-in-stock items.',
-                '✦ Memory footprint remained flat at ~38MB RSS per Go service container under heavy sustained load.'
+                '✦ Zero race conditions detected during simulated simultaneous purchases of last-in-stock items.'
             ],
             decisions: [
                 {
                     title: 'Go API Gateway vs Node.js Event Loop',
                     rationale: 'Go goroutines allow true OS-thread multiplexing without event loop stutter during heavy cryptographic JWT hashing and JSON schema serialization.'
-                },
-                {
-                    title: 'Distributed Redis Locks for Flash Item Checkouts',
-                    rationale: 'Eliminates database row contention by validating inventory availability in-memory with sub-millisecond atomic decrement (DECR) commands.'
-                },
-                {
-                    title: 'Read-Replica Partitioning',
-                    rationale: 'Segregates read-only catalog browsing traffic from mission-critical write transactions, ensuring checkout pipelines maintain zero latency even during marketing surges.'
                 }
             ],
             techStack: [
                 { name: 'Go (Golang)', role: 'Low-latency API gateway, worker pools, and request routing' },
-                { name: 'Redis Cluster', role: 'In-memory distributed caching, token bucket rate limiting, and lock primitives' },
-                { name: 'PostgreSQL', role: 'ACID relational data persistence and order reconciliation' },
-                { name: 'Docker / Linux', role: 'Containerized deployment with minimal Alpine base images' }
+                { name: 'Redis Cluster', role: 'In-memory distributed caching, token bucket rate limiting' },
+                { name: 'PostgreSQL', role: 'ACID relational data persistence and order reconciliation' }
             ],
-            securityPosture: 'Session tokens are signed with HMAC-SHA256, stored in HttpOnly SameSite=Strict cookies, and cross-checked against Redis blacklists upon logout to ensure instantaneous session revocation.'
+            securityPosture: 'Session tokens are signed with HMAC-SHA256, stored in HttpOnly SameSite=Strict cookies, and cross-checked against Redis blacklists upon logout.'
         },
         'savilinks': {
             tag: 'PRODUCTION PLATFORM 03',
@@ -395,37 +807,27 @@ document.addEventListener('DOMContentLoaded', () => {
             pipeline: [
                 { step: '01', title: 'HMAC Webhook Ingest', desc: 'Ingestion endpoint verifies cryptographic signatures and returns immediate HTTP 202.' },
                 { step: '02', title: 'Broker Write-Ahead', desc: 'Message payload buffered to durable queue with persistent disk journaling.' },
-                { step: '03', title: 'Worker Pool Execution', desc: 'Node/TypeScript worker pods consume queues with exponential backoff & jitter.' },
+                { step: '03', title: 'Worker Pool Execution', desc: 'Worker pods consume queues with exponential backoff & jitter.' },
                 { step: '04', title: 'Audit Ledger & Telemetry', desc: 'Delivery telemetry emitted to time-partitioned PostgreSQL tables.' }
             ],
-            ingressDesc: 'Corporate webhooks and user inquiries enter through a high-availability ingestion cluster. The ingress layer performs instantaneous signature verification and immediately enqueues the payload into message brokers, freeing clients from downstream network latency.',
-            persistenceDesc: 'Queue persistence is backed by disk write-ahead logs with consumer acknowledgment (ack) confirmation. Audit records and delivery receipts are persisted in PostgreSQL partitioned by calendar month to sustain indexing velocity.',
+            ingressDesc: 'Corporate webhooks and user inquiries enter through a high-availability ingestion cluster. The ingress layer performs instantaneous signature verification and immediately enqueues the payload.',
+            persistenceDesc: 'Queue persistence is backed by disk write-ahead logs with consumer acknowledgment confirmation. Audit records are partitioned by month.',
             stressNotes: [
-                '✦ Validated with burst tests exceeding 10,000 queued messages/sec with zero message drops or corruptions.',
-                '✦ Dead-letter queue automated replay successfully resolved 100% of simulated downstream carrier timeout faults.',
-                '✦ PostgreSQL query times remained sub-10ms for historical audit lookups across 2M+ recorded dispatches.'
+                '✦ Validated with burst tests exceeding 10,000 queued messages/sec with zero message drops.',
+                '✦ Dead-letter queue automated replay successfully resolved 100% of simulated downstream timeout faults.'
             ],
             decisions: [
                 {
                     title: 'Durable Queue Decoupling vs Synchronous Processing',
-                    rationale: 'Isolates the platform from downstream carrier delays and outages; if a third-party gateway slows down, incoming requests continue to be acknowledged in under 5ms.'
-                },
-                {
-                    title: 'Exponential Backoff with Full Jitter',
-                    rationale: 'Prevents thundering herd problems when downstream external APIs recover from outages, distributing retry traffic evenly across time windows.'
-                },
-                {
-                    title: 'Multi-Tenant Schema Isolation',
-                    rationale: 'Isolates corporate client communication datasets at the database schema level, ensuring complete privacy compliance and enterprise SLA segregation.'
+                    rationale: 'Isolates the platform from downstream carrier delays; incoming requests continue to be acknowledged in under 5ms.'
                 }
             ],
             techStack: [
                 { name: 'TypeScript / Node.js', role: 'Strongly-typed microservices and asynchronous message consumers' },
                 { name: 'RabbitMQ / Redis', role: 'Durable queue buffering and pub/sub message dispatching' },
-                { name: 'PostgreSQL', role: 'Time-partitioned operational ledger and delivery status storage' },
-                { name: 'REST & Webhooks', role: 'Standardized external integration interfaces' }
+                { name: 'PostgreSQL', role: 'Time-partitioned operational ledger' }
             ],
-            securityPosture: 'All webhook payloads require HMAC-SHA256 signature verification matching unique per-tenant secret keys. Strict rate-limits per corporate API key prevent abuse and guarantee quality of service across all clients.'
+            securityPosture: 'All webhook payloads require HMAC-SHA256 signature verification matching unique per-tenant secret keys.'
         },
         'defenzio': {
             tag: 'PRODUCTION PLATFORM 04',
@@ -440,46 +842,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 { label: 'Breach Incidents', val: '0' }
             ],
             pipeline: [
-                { step: '01', title: 'Kernel Ingress Scrubbing', desc: 'eBPF / XDP filters drop malformed packets at network interface level before OS stack.' },
-                { step: '02', title: 'Threat Correlator', desc: 'Heuristic log parsing identifies brute-force patterns, SQL injection, and path traversal.' },
-                { step: '03', title: 'Cluster Blacklist Sync', desc: 'nftables firewall rules propagate across all regional server nodes in under 1.5s.' },
-                { step: '04', title: 'Hardened DMZ Gateway', desc: 'Audited internal microservices execute in read-only sandboxed namespaces.' }
+                { step: '01', title: 'Kernel Ingress Scrubbing', desc: 'eBPF filters drop malformed packets at network interface level before OS stack.' },
+                { step: '02', title: 'Threat Correlator', desc: 'Heuristic log parsing identifies brute-force patterns and SQL injection.' },
+                { step: '03', title: 'Cluster Blacklist Sync', desc: 'nftables firewall rules propagate across regional server nodes in <1.5s.' },
+                { step: '04', title: 'Hardened DMZ Gateway', desc: 'Internal microservices execute in read-only sandboxed namespaces.' }
             ],
-            ingressDesc: 'Network traffic passes through multi-stage edge scrubbing filters. High-rate layer-4 SYN floods are mitigated via SYN cookies and kernel XDP rules. Layer-7 requests are inspected by reverse proxies enforcing strict URI whitelists and body size caps.',
-            persistenceDesc: 'System audit logs are written to append-only storage volumes with cryptographic hash chaining (Merkle-style logs). Once written, audit entries cannot be overwritten or altered even with elevated privileges.',
+            ingressDesc: 'Network traffic passes through multi-stage edge scrubbing filters. High-rate layer-4 SYN floods are mitigated via SYN cookies and kernel XDP rules.',
+            persistenceDesc: 'System audit logs are written to append-only storage volumes with cryptographic hash chaining.',
             stressNotes: [
                 '✦ Deflected simulated 100,000 packet/sec SYN flood with kernel CPU utilization staying under 12%.',
-                '✦ Threat containment pipeline automatically identified and blacklisted attacking IPs in 1.4 seconds.',
-                '✦ Zero unauthorized access attempts succeeded across multi-stage penetration testing audits.'
+                '✦ Threat containment pipeline automatically blacklisted attacking IPs in 1.4 seconds.'
             ],
             decisions: [
                 {
                     title: 'Kernel-Level eBPF Filtering vs User-Space Firewalls',
-                    rationale: 'Dropping malicious traffic at the network driver layer avoids context-switching into user space, conserving over 85% CPU power under hostile flood conditions.'
-                },
-                {
-                    title: 'Decentralized Cluster Ban Propagation',
-                    rationale: 'When one regional cluster node detects an attack, all peer nodes receive real-time block updates via secure gossip protocol, neutralizing the attack network-wide.'
-                },
-                {
-                    title: 'Read-Only Container Root Filesystem',
-                    rationale: 'Containers run with read-only root filesystems and dropped Linux capabilities (CAP_DROP_ALL), mathematically preventing arbitrary file write exploitation.'
+                    rationale: 'Dropping malicious traffic at the driver layer avoids context-switching into user space, conserving over 85% CPU power under hostile flood conditions.'
                 }
             ],
             techStack: [
                 { name: 'Linux Kernel (eBPF / nftables)', role: 'High-speed packet filtering and dynamic firewall policy enforcement' },
-                { name: 'NGINX Reverse Proxy', role: 'TLS termination, request inspection, and reverse routing' },
-                { name: 'Python / Bash Automation', role: 'Incident triage pipelines, alert routing, and log correlation' },
-                { name: 'Fail2ban & Auditd', role: 'Intrusion detection, brute-force mitigation, and immutable logging' }
+                { name: 'NGINX Reverse Proxy', role: 'TLS termination and request inspection' },
+                { name: 'Python / Bash Automation', role: 'Incident triage pipelines and alert routing' }
             ],
-            securityPosture: 'Zero-trust network architecture with mutual TLS (mTLS) between all internal services, hardware-enforced SSH key access, multi-factor authentication, and automated daily CVE vulnerability scanning.'
+            securityPosture: 'Zero-trust network architecture with mutual TLS (mTLS) between all internal services.'
         },
         'nexaverse': {
             tag: 'ACTIVE DISTRIBUTED SYSTEM 01',
             domain: 'SUPER-APP ARCHITECTURE & STATE INVARIANCE',
             title: 'NeXaVerSe MVP: Go API Gateway & Double-Entry Rust Ledger',
             summary: 'Institutional-grade ecosystem featuring an asynchronous Go reverse proxy, double-entry ACID Rust ledger with deterministic ascending row locks to mathematically eliminate deadlocks, distributed WebSocket multiplexing, and zk-SNARK biometric gating.',
-            liveUrl: '#systems',
+            liveUrl: '#/projects',
             metrics: [
                 { label: 'Gateway Latency', val: '<1.2ms' },
                 { label: 'State Invariance', val: '100% ACID' },
@@ -492,41 +884,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 { step: '03', title: 'Deterministic Rust Ledger', desc: 'Double-entry accounting engine acquires locks in strict ID order, preventing deadlocks.' },
                 { step: '04', title: 'Event Mesh Broadcast', desc: 'Redis pub/sub coordinates WebSocket notifications across horizontal nodes.' }
             ],
-            ingressDesc: 'Engineered in Go, the API Gateway operates non-blocking goroutine pools that parse, validate, and authenticate high-throughput request streams. Microscopic reverse routing latency (<1.2ms) is achieved through connection reuse and zero-copy byte buffers.',
-            persistenceDesc: 'Financial state is guarded by a bespoke Rust ledger engine. Every balance modification requires balanced debit and credit legs within an ACID transaction. To prevent circular database deadlocks during concurrent multi-party transfers, account IDs are sorted ascendingly before lock acquisition.',
+            ingressDesc: 'Engineered in Go, the API Gateway operates non-blocking goroutine pools that parse, validate, and authenticate high-throughput request streams.',
+            persistenceDesc: 'Financial state is guarded by a bespoke Rust ledger engine. Every balance modification requires balanced debit and credit legs within an ACID transaction.',
             stressNotes: [
                 '✦ Stress-tested with 10,000 concurrent multi-party balance transfers: zero deadlocks and 100% ACID balance conservation.',
-                '✦ zk-SNARK Groth16 proof verification executed in <180ms on standard cloud CPU hardware.',
-                '✦ Real-time WebSocket multiplexing sustained 50,000 active connections with <20ms cross-pod message delivery.'
+                '✦ zk-SNARK Groth16 proof verification executed in <180ms on standard cloud CPU hardware.'
             ],
             decisions: [
                 {
                     title: 'Separation of Concerns: Go Gateway + Rust Ledger',
-                    rationale: 'Go provides best-in-class network concurrency and developer velocity for API endpoints, while Rust guarantees zero-allocation memory safety and strict state correctness for financial accounting.'
+                    rationale: 'Go provides best-in-rate network concurrency and developer velocity for API endpoints, while Rust guarantees zero-allocation memory safety and strict state correctness for financial accounting.'
                 },
                 {
                     title: 'Deterministic Row-Locking Ordering',
-                    rationale: 'Sorting account IDs lexicographically before acquiring row-level database locks mathematically eliminates Dining Philosophers deadlock cycles in concurrent transfers.'
-                },
-                {
-                    title: 'Client-Side zk-SNARK Generation',
-                    rationale: 'Biometric hashing occurs on user hardware; only zero-knowledge mathematical proofs are transmitted, eliminating centralized biometric honeypot vulnerabilities.'
+                    rationale: 'Sorting account IDs lexicographically before acquiring row-level database locks mathematically eliminates deadlock cycles in concurrent transfers.'
                 }
             ],
             techStack: [
-                { name: 'Go (Golang)', role: 'Asynchronous API Gateway, WebSocket hub, and microservice orchestration' },
-                { name: 'Rust', role: 'ACID double-entry ledger engine, deterministic lock manager, and state verification' },
-                { name: 'zk-SNARKs (Circom / SnarkJS)', role: 'Zero-knowledge biometric privacy gating circuits' },
-                { name: 'Redis & PostgreSQL', role: 'Distributed session pub/sub and persistent relational ledger storage' }
+                { name: 'Go (Golang)', role: 'Asynchronous API Gateway, WebSocket hub' },
+                { name: 'Rust', role: 'ACID double-entry ledger engine, deterministic lock manager' },
+                { name: 'zk-SNARKs', role: 'Zero-knowledge biometric privacy gating circuits' }
             ],
-            securityPosture: 'Biometric privacy protected by zero-knowledge cryptographic proofs. All internal communication runs over encrypted channels with deterministic transaction verification preventing double-spend and race anomalies.'
+            securityPosture: 'Biometric privacy protected by zero-knowledge cryptographic proofs. All internal communication runs over encrypted channels.'
         },
         'kingdomconnect': {
             tag: 'ACTIVE DISTRIBUTED SYSTEM 02',
             domain: 'COLLABORATIVE FABRIC & MULTI-TENANT RBAC',
             title: 'KingdomConnect: Real-Time Collaborative Fabric & Granular RBAC',
             summary: 'Engineered for high-density community connectivity and distributed collaboration. Features persistent WebSocket loops, horizontal Redis pub/sub channel clustering, dynamic multi-tenant isolation, and a 64-bit bitmask RBAC security matrix.',
-            liveUrl: '#systems',
+            liveUrl: '#/projects',
             metrics: [
                 { label: 'Socket Connections', val: '15,000+' },
                 { label: 'Broadcast Latency', val: '<35ms' },
@@ -534,46 +920,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 { label: 'Data Isolation', val: 'Multi-Tenant' }
             ],
             pipeline: [
-                { step: '01', title: 'Socket Connection Terminus', desc: 'Load-balanced gateway cluster accepts and maintains full-duplex WebSocket connections.' },
+                { step: '01', title: 'Socket Connection Terminus', desc: 'Gateway cluster accepts and maintains full-duplex WebSocket connections.' },
                 { step: '02', title: 'Bitmask RBAC Check', desc: 'Granular permissions evaluated in a single CPU bitwise AND operation (<0.8ms).' },
                 { step: '03', title: 'Redis Pub/Sub Channel Ring', desc: 'Event broadcast across backend pods according to tenant room subscription keys.' },
                 { step: '04', title: 'PostgreSQL Relational Tier', desc: 'Row-Level Security (RLS) ensures absolute data segregation across organizations.' }
             ],
-            ingressDesc: 'Clients establish persistent WebSocket connections managed by horizontal Node/TypeScript pods. A custom heartbeat protocol monitors connection liveness and initiates seamless reconnections with client-side sequence buffers preventing duplicate event delivery.',
-            persistenceDesc: 'Tenant data is segregated using PostgreSQL Row-Level Security (RLS) policies. Historical chat logs, membership rosters, and audit trails are indexed with compound tenant-aware B-trees ensuring sub-millisecond retrieval.',
+            ingressDesc: 'Clients establish persistent WebSocket connections managed by horizontal Node/TypeScript pods.',
+            persistenceDesc: 'Tenant data is segregated using PostgreSQL Row-Level Security (RLS) policies.',
             stressNotes: [
                 '✦ Scaled to 15,000 concurrent active WebSocket sessions across 3 clustered nodes with CPU usage under 35%.',
-                '✦ Message broadcast propagation across distributed nodes averaged <35ms latency.',
-                '✦ Zero data cross-talk observed during multi-tenant penetration testing of organizational boundaries.'
+                '✦ Message broadcast propagation across distributed nodes averaged <35ms latency.'
             ],
             decisions: [
                 {
-                    title: '64-Bit Integer Bitmask RBAC vs Relational Permission Tables',
-                    rationale: 'Evaluating permissions via bitwise operators ((userPerms & requiredPerm) === requiredPerm) reduced authorization overhead from multiple database joins to a single sub-microsecond CPU instruction.'
-                },
-                {
-                    title: 'Redis Channel Key Scoping',
-                    rationale: 'Scoping channels by tenant (tenant:{id}:room:{id}) prevents unnecessary message fanout to uninterested cluster nodes, conserving inter-node bandwidth.'
-                },
-                {
-                    title: 'Client-Side Message Sequence Buffers',
-                    rationale: 'Clients acknowledge message sequence IDs; on transient network disconnects, the client requests missed sequence numbers, guaranteeing zero lost announcements.'
+                    title: '64-Bit Integer Bitmask RBAC vs Relational Tables',
+                    rationale: 'Evaluating permissions via bitwise operators reduced authorization overhead from multiple database joins to a single sub-microsecond CPU instruction.'
                 }
             ],
             techStack: [
-                { name: 'TypeScript / Node.js', role: 'Full-duplex WebSocket servers and event dispatcher loops' },
+                { name: 'TypeScript / Node.js', role: 'Full-duplex WebSocket servers and event loops' },
                 { name: 'Redis Pub/Sub Cluster', role: 'Distributed horizontal messaging and active channel registry' },
-                { name: 'PostgreSQL (RLS)', role: 'Row-level security multi-tenant storage and transactional audit logs' },
-                { name: 'Docker Compose / Swarm', role: 'Multi-node container clustering and healthcheck orchestration' }
+                { name: 'PostgreSQL (RLS)', role: 'Row-level security multi-tenant storage' }
             ],
-            securityPosture: 'Multi-tenant isolation enforced at the database layer via PostgreSQL Row-Level Security (RLS). Sensitive administrative functions require multi-tier role authorization verified through bitmask permission gates.'
+            securityPosture: 'Multi-tenant isolation enforced at the database layer via PostgreSQL Row-Level Security.'
         },
         'trading': {
             tag: 'ACTIVE QUANT ENGINE 03',
             domain: 'HIGH-FREQUENCY QUANTITATIVE EXECUTION & RISK CONTROLS',
             title: 'Automated FX Engine: MetaTrader 5 Institutional Quant',
             summary: 'Algorithmic trading engine for MetaTrader 5 written in MQL5 and C++. Implements sub-millisecond tick streaming, 3-EMA structural pullback detection, stepped trailing stops with automated breakeven locks, dynamic ATR volatility risk sizing, and hardware kill switches.',
-            liveUrl: '#systems',
+            liveUrl: '#/projects',
             metrics: [
                 { label: 'Decision Loop', val: '<0.4ms' },
                 { label: 'Critical Path Alloc', val: '0 Heap' },
@@ -586,41 +962,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 { step: '03', title: 'State Machine Execution', desc: 'Pullback conditions trigger market orders with dynamic ATR-calculated stop losses.' },
                 { step: '04', title: 'Stepped Trailing Guard', desc: 'Stepped trailing stops automatically advance to breakeven once target R-multiple is hit.' }
             ],
-            ingressDesc: 'Broker price tick streams arrive via dedicated IPC memory pipes. The engine operates an event-driven tick handler that executes within <0.4ms, ensuring trades are placed ahead of typical retail queue latency.',
-            persistenceDesc: 'Historical ticks, execution slippage, and closed trade PnL are recorded to local TimescaleDB instances for algorithmic walk-forward validation and Monte Carlo risk simulations.',
+            ingressDesc: 'Broker price tick streams arrive via dedicated IPC memory pipes. The engine operates an event-driven tick handler that executes within <0.4ms.',
+            persistenceDesc: 'Historical ticks, execution slippage, and closed trade PnL are recorded to local TimescaleDB instances.',
             stressNotes: [
                 '✦ Zero heap allocations during live tick processing loops: zero garbage collection pauses or runtime jitter.',
-                '✦ Automated spread circuit breaker successfully aborted trade execution during simulated 400% spread spikes (news volatility).',
-                '✦ Stepped trailing stops locked in positive returns on 89.4% of trades that crossed 1.5x ATR initial target.'
+                '✦ Automated spread circuit breaker successfully aborted trade execution during simulated 400% spread spikes.'
             ],
             decisions: [
                 {
                     title: 'Pre-Allocated Ring Buffers in C++/MQL5',
-                    rationale: 'Dynamic memory allocations during live market ticks introduce non-deterministic microsecond latency spikes. Pre-allocating all buffers guarantees deterministic O(1) tick processing time.'
-                },
-                {
-                    title: 'Stepped Trailing Stop vs Continuous Trailing',
-                    rationale: 'Continuous trailing stops often get prematurely triggered by market noise. Stepped trailing locks in whole profit tiers (breakeven, +1R, +2R) only when price action creates new confirmed swing levels.'
-                },
-                {
-                    title: 'Spread-Expansion Circuit Breaker Kill Switch',
-                    rationale: 'If broker spreads widen beyond 2.5x the rolling 30-minute standard deviation (e.g. during high-impact macroeconomic announcements), new order dispatch is locked out instantly.'
+                    rationale: 'Dynamic memory allocations introduce non-deterministic microsecond latency spikes. Pre-allocating buffers guarantees deterministic O(1) tick processing time.'
                 }
             ],
             techStack: [
                 { name: 'MQL5 & C++', role: 'High-speed algorithmic execution, tick processing, and order routing' },
-                { name: 'MetaTrader 5 API', role: 'Direct institutional broker bridge and market depth (DOM) feeds' },
-                { name: 'TimescaleDB', role: 'High-performance time-series tick logging and backtesting analysis' },
-                { name: 'Python Analytics', role: 'Monte Carlo risk simulations, Sharpe/Sortino ratio validation' }
+                { name: 'MetaTrader 5 API', role: 'Direct institutional broker bridge and market depth feeds' },
+                { name: 'TimescaleDB', role: 'Time-series tick logging and backtesting analysis' }
             ],
-            securityPosture: 'Fail-safe execution posture: hard stop losses are sent with every order directly to broker books (never held only in client memory). Maximum daily drawdown circuit breakers automatically flatten open exposures if risk limits are approached.'
+            securityPosture: 'Hard stop losses are sent with every order directly to broker books. Maximum daily drawdown circuit breakers automatically flatten open exposures if risk limits are approached.'
         }
     };
 
     window.openCaseStudyModal = (key) => {
         const data = CASE_STUDY_DATA[key];
         if (!data || !caseModalOverlay) return;
-        lastCaseFocusedElement = document.activeElement;
 
         const tagEl = document.getElementById('caseStudyTag');
         const domainEl = document.getElementById('caseStudyDomain');
@@ -647,10 +1012,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const pipelineEl = document.getElementById('caseStudyPipeline');
         if (pipelineEl) {
             pipelineEl.innerHTML = data.pipeline.map(p => `
-                <div class="pipeline-node p-3.5 rounded-xl flex flex-col justify-between">
+                <div class="p-3.5 rounded-xl bg-[#12151e] border border-white/10 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-mono font-bold text-gold-pale">${p.step}</span>
+                            <span class="text-xs font-mono font-bold text-cyan-300">${p.step}</span>
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                         </div>
                         <h4 class="text-xs font-bold text-white mb-1">${p.title}</h4>
@@ -685,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', () => {
             decisionsEl.innerHTML = data.decisions.map(d => `
                 <div class="p-4 rounded-xl bg-[#0b0d13] border border-white/[0.08]">
                     <div class="flex items-center space-x-2 text-xs font-bold text-white mb-1.5">
-                        <span class="text-gold-light">✦</span>
+                        <span class="text-cyan-400">✦</span>
                         <span>${d.title}</span>
                     </div>
                     <p class="text-xs text-neutral-300 leading-relaxed font-light pl-4">${d.rationale}</p>
@@ -697,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (techGridEl) {
             techGridEl.innerHTML = data.techStack.map(t => `
                 <div class="p-3.5 rounded-xl bg-[#12151e] border border-white/[0.08]">
-                    <span class="text-xs font-mono font-bold text-gold-pale block mb-1">${t.name}</span>
+                    <span class="text-xs font-mono font-bold text-cyan-300 block mb-1">${t.name}</span>
                     <span class="text-[11px] text-neutral-400 font-light block leading-relaxed">${t.role}</span>
                 </div>
             `).join('');
@@ -710,22 +1075,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         caseModalOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
-        if (caseModalClose) caseModalClose.focus();
     };
 
     window.closeCaseStudyModal = () => {
         if (!caseModalOverlay) return;
         caseModalOverlay.classList.remove('active');
         document.body.style.overflow = '';
-        if (lastCaseFocusedElement) lastCaseFocusedElement.focus();
     };
 
     function switchCaseStudyTab(tabKey) {
         document.querySelectorAll('.case-study-tab-btn').forEach(btn => {
             if (btn.getAttribute('data-case-tab') === tabKey) {
                 btn.classList.add('active');
+                btn.style.background = 'rgba(14, 165, 233, 0.2)';
+                btn.style.color = '#38bdf8';
             } else {
                 btn.classList.remove('active');
+                btn.style.background = 'transparent';
+                btn.style.color = '#94a3b8';
             }
         });
 
@@ -756,229 +1123,86 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    if (caseModalClose) {
-        caseModalClose.addEventListener('click', window.closeCaseStudyModal);
-    }
+    if (caseModalClose) caseModalClose.addEventListener('click', window.closeCaseStudyModal);
     if (caseModalOverlay) {
         caseModalOverlay.addEventListener('click', (e) => {
             if (e.target === caseModalOverlay) window.closeCaseStudyModal();
         });
     }
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && caseModalOverlay && caseModalOverlay.classList.contains('active')) {
-            window.closeCaseStudyModal();
+
+    // =========================================================================
+    // 12. HIGH-RESOLUTION PORTRAIT LIGHTBOX MODAL
+    // =========================================================================
+    const portraitModal = document.getElementById('portraitModal');
+
+    window.openPortraitModal = function(e) {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (portraitModal) {
+            portraitModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
-    });
-
-    document.querySelectorAll('[data-case-study]').forEach(trigger => {
-        trigger.addEventListener('click', (e) => {
-            e.preventDefault();
-            const key = trigger.getAttribute('data-case-study');
-            window.openCaseStudyModal(key);
-        });
-    });
-
-    // ========================================================
-    // 5. STICKY NAVBAR MORPH ON SCROLL
-    // ========================================================
-    const floatingNavbar = document.getElementById('floating-navbar');
-    window.addEventListener('scroll', () => {
-        if (!floatingNavbar) return;
-        if (window.scrollY > 40) {
-            floatingNavbar.classList.add('glass-nav-scrolled');
-        } else {
-            floatingNavbar.classList.remove('glass-nav-scrolled');
-        }
-    }, { passive: true });
-
-    // ========================================================
-    // 6. MOBILE NAVIGATION MENU TOGGLE
-    // ========================================================
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
-    const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-
-    if (mobileMenuBtn && mobileMenuOverlay) {
-        const toggleMobileMenu = () => {
-            const isOpen = !mobileMenuOverlay.classList.contains('hidden');
-            if (isOpen) {
-                mobileMenuOverlay.classList.add('hidden');
-                document.body.style.overflow = '';
-                mobileMenuBtn.innerHTML = `
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 6h16M4 12h16m-7 6h7"></path>
-                    </svg>
-                `;
-            } else {
-                mobileMenuOverlay.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-                mobileMenuBtn.innerHTML = `
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                `;
-            }
-        };
-
-        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-
-        mobileNavLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenuOverlay.classList.add('hidden');
-                document.body.style.overflow = '';
-                mobileMenuBtn.innerHTML = `
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 6h16M4 12h16m-7 6h7"></path>
-                    </svg>
-                `;
-            });
-        });
-    }
-
-    // ========================================================
-    // 7. ACTIVE SECTION HIGHLIGHTING IN FLOATING NAVBAR
-    // ========================================================
-    const sections = document.querySelectorAll('section[id]');
-    const navAnchors = document.querySelectorAll('.nav-link-item');
-
-    const updateActiveNav = () => {
-        let currentSectionId = '';
-        const scrollPosition = window.scrollY + 200;
-
-        sections.forEach(section => {
-            const top = section.offsetTop;
-            const height = section.offsetHeight;
-            if (scrollPosition >= top && scrollPosition < top + height) {
-                currentSectionId = section.getAttribute('id');
-            }
-        });
-
-        navAnchors.forEach(anchor => {
-            const href = anchor.getAttribute('href');
-            if (href === `#${currentSectionId}`) {
-                anchor.classList.add('text-gold-light', 'border-b-2', 'border-[#d4af37]');
-                anchor.classList.remove('text-neutral-400');
-            } else {
-                anchor.classList.remove('text-gold-light', 'border-b-2', 'border-[#d4af37]');
-                anchor.classList.add('text-neutral-400');
-            }
-        });
     };
 
-    window.addEventListener('scroll', updateActiveNav, { passive: true });
-    updateActiveNav();
+    window.closePortraitModal = function(e) {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (portraitModal) {
+            portraitModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    };
 
-    // ========================================================
-    // 8. EXECUTIVE TERMINAL & RFP INQUIRY FORM HANDLER
-    // ========================================================
-    const inquiryForm = document.getElementById('advisoryInquiryForm');
-    if (inquiryForm) {
-        inquiryForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const submitBtn = inquiryForm.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Transmit Strategic Brief';
-            
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = `
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-[#0a0b0e] inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                    </svg>
-                    Dispatching Payload...
-                `;
-            }
-
-            const name = (document.getElementById('rfp-name')?.value || '').trim();
-            const email = (document.getElementById('rfp-email')?.value || '').trim();
-            const role = (document.getElementById('rfp-scope')?.value || '').trim();
-            const message = (document.getElementById('rfp-message')?.value || '').trim();
-
-            const fullDetails = `${role ? '[' + role + '] ' : ''}${message}`;
-
-            try {
-                const response = await fetch('/api/messages', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: name,
-                        email: email,
-                        role: fullDetails || 'Lead Architecture Consultation'
-                    })
-                });
-
-                if (response.ok) {
-                    showGlassToast('Architecture brief dispatched to Ayuba Garba.', '✦');
-                    inquiryForm.reset();
-                } else {
-                    // Graceful fallback for static deployments
-                    showGlassToast('Inquiry captured. Email routing fallback initiated.', '✓');
-                    window.location.href = `mailto:ayubagarba.tech@gmail.com?subject=Architecture Brief from ${encodeURIComponent(name)}&body=${encodeURIComponent(fullDetails)}`;
-                }
-            } catch (err) {
-                // Network or offline fallback
-                showGlassToast('Direct inbox routing opened.', '✓');
-                window.location.href = `mailto:ayubagarba.tech@gmail.com?subject=Architecture Brief from ${encodeURIComponent(name)}&body=${encodeURIComponent(fullDetails)}`;
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                }
-            }
+    if (portraitModal) {
+        portraitModal.addEventListener('click', (e) => {
+            if (e.target === portraitModal) window.closePortraitModal();
         });
     }
 
-    // ========================================================
-    // 9. SMOOTH SCROLL FOR ANCHOR CTAS WITH OFFSET
-    // ========================================================
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            if (targetId === '#' || !targetId) return;
-
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                e.preventDefault();
-                const offset = 95; // Account for floating frosted navbar
-                const bodyRect = document.body.getBoundingClientRect().top;
-                const elementRect = targetElement.getBoundingClientRect().top;
-                const elementPosition = elementRect - bodyRect;
-                const offsetPosition = elementPosition - offset;
-
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
-            }
+    document.querySelectorAll('.portrait-trigger').forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            window.openPortraitModal(e);
         });
     });
 
-    // ========================================================
-    // 10. DYNAMIC WAT LOCAL TIME IN FOOTER
-    // ========================================================
-    const localTimeEl = document.getElementById('office-local-time');
-    if (localTimeEl) {
-        const updateLocalTime = () => {
-            const options = { 
-                timeZone: 'Africa/Lagos', 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit',
-                hour12: false 
-            };
-            const formatter = new Intl.DateTimeFormat([], options);
-            localTimeEl.textContent = `${formatter.format(new Date())} WAT`;
-        };
-        updateLocalTime();
-        setInterval(updateLocalTime, 1000);
-    }
+    // Global Keyboard Dismissal for All Modals (Escape Key)
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (caseModalOverlay && caseModalOverlay.classList.contains('active')) window.closeCaseStudyModal();
+            if (certModalOverlay && certModalOverlay.classList.contains('active')) closeCertificateModal();
+            if (portraitModal && portraitModal.classList.contains('active')) window.closePortraitModal();
+            if (quickModal && quickModal.classList.contains('active')) {
+                quickModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+    });
 
-    // ========================================================
-    // 11. CALENDLY POPUP MODAL & POSTMESSAGE LISTENER
-    // ========================================================
+    // =========================================================================
+    // 13. DYNAMIC LOCAL TIME (WAT Africa/Lagos)
+    // =========================================================================
+    const footerTimeEl = document.getElementById('footer-local-time');
+    const connectTimeEl = document.getElementById('connect-local-time');
+
+    const updateWatTime = () => {
+        const options = { 
+            timeZone: 'Africa/Lagos', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit',
+            hour12: false 
+        };
+        const formatter = new Intl.DateTimeFormat([], options);
+        const timeString = `${formatter.format(new Date())} WAT`;
+        if (footerTimeEl) footerTimeEl.textContent = timeString;
+        if (connectTimeEl) connectTimeEl.textContent = `${formatter.format(new Date())} WAT (UTC+1)`;
+    };
+    updateWatTime();
+    setInterval(updateWatTime, 1000);
+
+    // =========================================================================
+    // 14. CALENDLY POPUP INTEGRATION
+    // =========================================================================
     window.openCalendlyPopup = function() {
-        const url = 'https://calendly.com/ayubabright1/30min?hide_gdpr_banner=1&background_color=0d0e12&text_color=f8fafc&primary_color=d4af37';
+        const url = 'https://calendly.com/ayubabright1/30min?hide_gdpr_banner=1&background_color=060814&text_color=f8fafc&primary_color=0ea5e9';
         if (window.Calendly && typeof window.Calendly.initPopupWidget === 'function') {
             window.Calendly.initPopupWidget({ url });
         } else {
@@ -986,74 +1210,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.resetCalendlyWidget = function() {
-        console.log('Calendly popup ready.');
-    };
-
-    const advisoryScheduleBtn = document.getElementById('openAdvisorySchedule');
-    if (advisoryScheduleBtn) {
-        advisoryScheduleBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.openCalendlyPopup();
-        });
-    }
-
-    // Listen for Calendly completion events across window boundaries
     window.addEventListener('message', function(e) {
         if (e.data && e.data.event === 'calendly.event_scheduled') {
-            console.log('Calendly booking confirmed.');
-            if (typeof window.showGlassToast === 'function') {
-                window.showGlassToast('Consultation session booked! Confirmation dispatched to inbox.', '✓');
-            }
+            showGlassToast('Consultation session booked! Confirmation dispatched to inbox.', '✓');
         }
     });
 
-    // ========================================================
-    // 12. HIGH-RESOLUTION PORTRAIT LIGHTBOX MODAL
-    // ========================================================
-    const portraitModal = document.getElementById('portraitModal');
-
-    window.openPortraitModal = function(e) {
-        if (e) {
-            if (typeof e.preventDefault === 'function') e.preventDefault();
-            if (typeof e.stopPropagation === 'function') e.stopPropagation();
-        }
-        const modal = document.getElementById('portraitModal');
-        if (!modal) return;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    };
-
-    window.closePortraitModal = function(e) {
-        if (e && typeof e.preventDefault === 'function') e.preventDefault();
-        const modal = document.getElementById('portraitModal');
-        if (!modal) return;
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.style.overflow = '';
-    };
-
-    if (portraitModal) {
-        portraitModal.addEventListener('click', (e) => {
-            if (e.target === portraitModal) {
-                window.closePortraitModal();
-            }
-        });
-    }
-
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            const modal = document.getElementById('portraitModal');
-            if (modal && !modal.classList.contains('hidden')) {
-                window.closePortraitModal();
-            }
-        }
-    });
-
-    document.querySelectorAll('.portrait-trigger').forEach(trigger => {
-        trigger.addEventListener('click', (e) => {
-            window.openPortraitModal(e);
-        });
-    });
 });

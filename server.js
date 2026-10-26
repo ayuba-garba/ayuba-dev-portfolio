@@ -27,39 +27,78 @@ const messageSchema = new mongoose.Schema({
 const Message = mongoose.models.Message || mongoose.model('Message', messageSchema);
 const memoryMessages = [];
 
-// 🌐 Parse JSON Payloads
-app.use(express.json());
+// 🌐 Parse JSON & URL-Encoded Payloads with Strict Memory/Payload Caps (10kb)
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// 🛡️ Security Helper: Strip HTML/script tags and enforce maximum character bounds
+function sanitizeInput(val, maxLength = 2000) {
+    if (typeof val !== 'string') return '';
+    return val.replace(/<[^>]*>?/gm, '').trim().slice(0, maxLength);
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // 📁 CORRECT PATHING: Serves all static files out of your /public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 📤 API Route: Push form records
-app.post('/api/messages', async (req, res) => {
-    // 🌟 FALLBACK WORKAROUND: Pulls either 'role' OR 'message' fields dynamically
-    const name = req.body.name;
-    const email = req.body.email;
-    const role = req.body.role || req.body.message; 
-    
-    if (!name || !email || !role) {
-        return res.status(400).json({ error: 'Name, email, and message details are required.' });
+// 📬 Route: Asynchronous Form Submission Endpoint (Netlify / Root POST)
+app.post('/', (req, res) => {
+    const rawName = req.body?.name;
+    const rawEmail = req.body?.email;
+    const rawScope = req.body?.scope;
+    const rawMessage = req.body?.message;
+
+    const name = sanitizeInput(rawName, 100);
+    const email = sanitizeInput(rawEmail, 150);
+    const scope = sanitizeInput(rawScope, 100);
+    const message = sanitizeInput(rawMessage, 2000);
+
+    if (!name || !email || !message || !EMAIL_REGEX.test(email)) {
+        return res.status(400).json({ error: 'Valid name, email address, and message are required.' });
     }
 
+    console.log('📥 Form Payload Captured:', { name, email, scope, messageLength: message.length });
+    res.status(200).send('OK');
+});
+
+// 📤 API Route Handler: Push form records securely with validation & sanitization
+const handleMessagePost = async (req, res) => {
     try {
+        const rawName = req.body?.name;
+        const rawEmail = req.body?.email;
+        const rawRole = req.body?.role || req.body?.message;
+
+        const name = sanitizeInput(rawName, 100);
+        const email = sanitizeInput(rawEmail, 150);
+        const role = sanitizeInput(rawRole, 2000);
+
+        if (!name || !email || !role) {
+            return res.status(400).json({ error: 'Name, email, and message details are required.' });
+        }
+
+        if (!EMAIL_REGEX.test(email)) {
+            return res.status(400).json({ error: 'A valid email address is required.' });
+        }
+
         if (MONGO_URI && mongoose.connection.readyState === 1) {
             const newMessage = new Message({ name, email, role });
             await newMessage.save();
-            return res.status(201).json(newMessage);
+            return res.status(201).json({ id: newMessage._id, success: true });
         } else {
             const record = { id: Date.now().toString(), name, email, role, createdAt: new Date() };
             memoryMessages.push(record);
-            console.log('📥 Advisory RFP Recorded (In-Memory):', record);
-            return res.status(201).json(record);
+            return res.status(201).json({ id: record.id, success: true });
         }
     } catch (error) {
-        console.error('❌ Failed to write message record:', error);
-        res.status(500).json({ error: 'Failed to write message record.' });
+        // Sanitize output: Never leak internal error stacks or connection details to client
+        console.error('❌ Failed to process message submission.');
+        res.status(500).json({ error: 'Failed to process message submission. Please try again later.' });
     }
-});
+};
+
+app.post('/api/messages', handleMessagePost);
+app.post('/api/contact', handleMessagePost);
 
 // 🏠 BULLETPROOF FALLBACK ROUTE: Express v5 compatible middleware
 // This naturally catches any unhandled paths and serves index.html safely
