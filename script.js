@@ -660,32 +660,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (quickForm) {
-        quickForm.addEventListener('submit', async (e) => {
+        quickForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const btn = document.getElementById('qm-submit-btn') || quickForm.querySelector("button[type='submit']");
-            if (btn) btn.textContent = 'Sending...';
+            if (btn) btn.textContent = 'Redirecting...';
 
-            const nameInput = quickForm.querySelector("[name='name']") || document.getElementById('qm-name') || document.getElementById('q-name');
-            const emailInput = quickForm.querySelector("[name='email']") || document.getElementById('qm-email') || document.getElementById('q-email');
-            const messageInput = quickForm.querySelector("[name='message']") || document.getElementById('qm-message') || document.getElementById('q-message');
-
-            const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'Portfolio Visitor';
-            const email = emailInput && emailInput.value.trim() ? emailInput.value.trim() : 'visitor@portfolio.com';
-            const message = messageInput ? messageInput.value.trim() : '';
+            // Extract inputs synchronously
+            const name = (quickForm.querySelector("[name='name']") || document.getElementById('qm-name') || {}).value?.trim() || 'Visitor';
+            const email = (quickForm.querySelector("[name='email']") || document.getElementById('qm-email') || {}).value?.trim() || '';
+            const message = (quickForm.querySelector("[name='message']") || document.getElementById('qm-message') || {}).value?.trim() || '';
 
             if (!message) {
-                alert('Please enter a message before sending.');
+                if (typeof window.showGlassToast === 'function') {
+                    window.showGlassToast('Please enter a message before sending.', '⚠️');
+                } else {
+                    alert('Please enter a message before sending.');
+                }
                 if (btn) btn.textContent = 'Send Instant Message';
                 return;
             }
 
-            // 1. Instantly construct and trigger WhatsApp link directly in click/submit flow to prevent popup blocker
+            // Construct WhatsApp URL
             const whatsappNumber = '2348034108158';
             const text = `*New Quick Message*%0A%0A*Name:* ${encodeURIComponent(name)}%0A*Email:* ${encodeURIComponent(email)}%0A*Message:* ${encodeURIComponent(message)}`;
             const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${text}`;
-            window.open(whatsappUrl, '_blank');
 
-            // 2. Concurrently dispatch payload to Netlify Forms (and fallback to Node backend /api/messages)
+            // Concurrently dispatch payload to Netlify Forms (guaranteed via keepalive / sendBeacon)
             const netlifyPayload = new FormData(quickForm);
             if (!netlifyPayload.get('form-name')) {
                 netlifyPayload.append('form-name', 'quick-message');
@@ -694,43 +694,60 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!netlifyPayload.get('email')) netlifyPayload.append('email', email);
             if (!netlifyPayload.get('message')) netlifyPayload.append('message', message);
 
+            const urlEncodedBody = new URLSearchParams(netlifyPayload).toString();
+
             try {
-                // Post to Netlify Form endpoint
-                await fetch('/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams(netlifyPayload).toString()
-                });
-            } catch (err) {
-                console.warn('Netlify form submission note:', err);
-                try {
-                    await fetch('/api/messages', {
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon('/', new Blob([urlEncodedBody], { type: 'application/x-www-form-urlencoded' }));
+                } else {
+                    fetch('/', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            name,
-                            email,
-                            message,
-                            role: message,
-                            recipient: 'ayubagarba@savilinks.com'
-                        })
-                    });
-                } catch (apiErr) {
-                    console.error('Fallback email API note:', apiErr);
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: urlEncodedBody,
+                        keepalive: true
+                    }).catch(() => {});
+                }
+            } catch (err) {
+                console.warn('Netlify dispatch note:', err);
+            }
+
+            // Fallback API call for local development backend
+            try {
+                fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        message,
+                        role: message,
+                        recipient: 'ayubagarba@savilinks.com'
+                    }),
+                    keepalive: true
+                }).catch(() => {});
+            } catch (apiErr) {
+                // Ignore fallback error
+            }
+
+            // Force open WhatsApp immediately across mobile and desktop viewports
+            const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                window.location.href = whatsappUrl;
+            } else {
+                const win = window.open(whatsappUrl, '_blank');
+                if (!win || win.closed || typeof win.closed === 'undefined') {
+                    window.location.href = whatsappUrl;
                 }
             }
 
-            // 3. Show instant confirmation feedback, reset form, and dismiss modal cleanly
-            const confirmationText = 'Message sent to WhatsApp & Netlify inbox!';
-            if (typeof window.showGlassToast === 'function') {
-                window.showGlassToast(confirmationText, '✓');
-            }
-            alert(confirmationText);
-
+            // Reset form, dismiss modal cleanly, and display confirmation toast
             quickForm.reset();
             if (btn) btn.textContent = 'Send Instant Message';
             if (typeof window.closeQuickMessageModal === 'function') {
                 window.closeQuickMessageModal();
+            }
+            if (typeof window.showGlassToast === 'function') {
+                window.showGlassToast('Message sent to WhatsApp & Netlify inbox!', '✓');
             }
         });
     }
