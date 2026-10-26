@@ -697,11 +697,13 @@ body {
 }
 
 /* Floating Action Button (FAB) */
-.fab-trigger {
+.fab-trigger,
+#fab-contact-trigger,
+#quick-message {
   position: fixed;
   bottom: 1.75rem;
   right: 1.75rem;
-  z-index: 90;
+  z-index: 9995;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -715,17 +717,31 @@ body {
   letter-spacing: 0.02em;
   box-shadow: 0 10px 25px rgba(124, 58, 237, 0.35);
   cursor: pointer;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.fab-trigger:hover {
+.fab-trigger:hover,
+#fab-contact-trigger:hover,
+#quick-message:hover {
   transform: translateY(-3px) scale(1.04);
   box-shadow: 0 15px 35px rgba(5, 150, 105, 0.45);
 }
 
-.fab-trigger svg {
+.fab-trigger svg,
+#fab-contact-trigger svg,
+#quick-message svg {
   width: 18px;
   height: 18px;
+}
+
+.fab-trigger *,
+#fab-contact-trigger *,
+#quick-message * {
+  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -1475,7 +1491,7 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 10000 !important;
   background: rgba(18, 18, 18, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -1486,8 +1502,13 @@ body {
   overflow-y: auto;
 }
 
-.modal-overlay.active {
-  display: flex;
+.modal-overlay.active,
+#quickMessageModal.active,
+#quick-message-modal.active {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .modal-container {
@@ -1991,7 +2012,8 @@ footer {
   /* Floating Action Button (FAB) positioned safely above Bottom Dock */
   .fab-trigger,
   #fab-contact-trigger,
-  #quick-message {
+  #quick-message,
+  [data-fab="quick-message"] {
     position: fixed !important;
     bottom: 85px !important;
     right: 16px !important;
@@ -1999,6 +2021,37 @@ footer {
     padding: 0.6rem 0.95rem !important;
     font-size: 0.75rem !important;
     box-sizing: border-box !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .fab-trigger *,
+  #fab-contact-trigger *,
+  #quick-message * {
+    pointer-events: none !important;
+  }
+
+  .modal-overlay {
+    z-index: 10000 !important;
+    padding: 1rem !important;
+  }
+
+  .modal-overlay.active,
+  #quickMessageModal.active,
+  #quick-message-modal.active {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  .modal-container {
+    max-height: 85vh !important;
+    width: 100% !important;
+    margin: auto !important;
   }
 
   /* Split Layouts Collapse to 1 Column */

@@ -554,32 +554,82 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 8. QUICK MESSAGE FLOATING MODAL
     // =========================================================================
-    const quickModal = document.getElementById('quickMessageModal');
+    function openQuickMessageModal() {
+        const modal = document.getElementById('quickMessageModal') || document.getElementById('quick-message-modal');
+        if (modal) {
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+            modal.style.opacity = '1';
+            modal.style.visibility = 'visible';
+            modal.style.pointerEvents = 'auto';
+            document.body.style.overflow = 'hidden';
+            const nameInp = document.getElementById('qm-name');
+            if (nameInp) setTimeout(() => nameInp.focus(), 80);
+        }
+    }
+    window.openQuickMessageModal = openQuickMessageModal;
+
+    function closeQuickMessageModal() {
+        const modal = document.getElementById('quickMessageModal') || document.getElementById('quick-message-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+            modal.style.opacity = '';
+            modal.style.visibility = '';
+            document.body.style.overflow = '';
+        }
+    }
+    window.closeQuickMessageModal = closeQuickMessageModal;
+
+    const quickModal = document.getElementById('quickMessageModal') || document.getElementById('quick-message-modal');
     const quickModalClose = document.getElementById('quickMessageClose');
     const quickForm = document.getElementById('quick-message-form');
 
-    if (fabTrigger && quickModal) {
-        fabTrigger.addEventListener('click', () => {
-            quickModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            const nameInp = document.getElementById('qm-name');
-            if (nameInp) nameInp.focus();
+    // Attach click and touch listeners to all potential FAB selectors
+    const fabTriggers = document.querySelectorAll('.fab-trigger, #fab-contact-trigger, #quick-message, [data-fab="quick-message"]');
+    fabTriggers.forEach(fab => {
+        fab.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openQuickMessageModal();
+        });
+        fab.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openQuickMessageModal();
+        }, { passive: false });
+    });
+
+    // Delegation failsafe for dynamically rendered or nested elements
+    document.addEventListener('click', (e) => {
+        const fab = e.target.closest('.fab-trigger, #fab-contact-trigger, #quick-message, [data-fab="quick-message"]');
+        if (fab) {
+            e.preventDefault();
+            e.stopPropagation();
+            openQuickMessageModal();
+        }
+    });
+
+    if (quickModalClose) {
+        quickModalClose.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeQuickMessageModal();
         });
     }
 
-    if (quickModalClose && quickModal) {
-        quickModalClose.addEventListener('click', () => {
-            quickModal.classList.remove('active');
-            document.body.style.overflow = '';
-        });
-
+    if (quickModal) {
         quickModal.addEventListener('click', (e) => {
             if (e.target === quickModal) {
-                quickModal.classList.remove('active');
-                document.body.style.overflow = '';
+                closeQuickMessageModal();
             }
         });
     }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeQuickMessageModal();
+        }
+    });
 
     if (quickForm) {
         quickForm.addEventListener('submit', async (e) => {
@@ -622,8 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             quickForm.reset();
             if (btn) btn.textContent = 'Send Instant Message';
-            if (quickModal) quickModal.classList.remove('active');
-            document.body.style.overflow = '';
+            closeQuickMessageModal();
             showGlassToast('Thank you — message dispatched to email & WhatsApp!', '✓');
         });
     }
