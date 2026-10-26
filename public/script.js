@@ -662,46 +662,55 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quickForm) {
         quickForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('qm-submit-btn');
+            const btn = document.getElementById('qm-submit-btn') || quickForm.querySelector("button[type='submit']");
             if (btn) btn.textContent = 'Sending...';
 
-            const formData = {
-                name: document.getElementById('qm-name')?.value?.trim() || '',
-                email: document.getElementById('qm-email')?.value?.trim() || '',
-                message: document.getElementById('qm-message')?.value?.trim() || ''
-            };
+            const nameInput = quickForm.querySelector("[name='name']") || document.getElementById('qm-name') || document.getElementById('q-name');
+            const emailInput = quickForm.querySelector("[name='email']") || document.getElementById('qm-email') || document.getElementById('q-email');
+            const messageInput = quickForm.querySelector("[name='message']") || document.getElementById('qm-message') || document.getElementById('q-message');
 
-            // 1. Instantly construct and open pre-filled WhatsApp chat link in a new tab
-            const name = encodeURIComponent(formData.name);
-            const email = encodeURIComponent(formData.email);
-            const message = encodeURIComponent(formData.message);
+            const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'Portfolio Visitor';
+            const email = emailInput && emailInput.value.trim() ? emailInput.value.trim() : 'visitor@portfolio.com';
+            const message = messageInput ? messageInput.value.trim() : '';
 
-            const text = `*New Portfolio Message*%0A%0A*Name:* ${name}%0A*Email:* ${email}%0A*Message:* ${message}`;
+            if (!message) {
+                alert('Please enter a message before sending.');
+                if (btn) btn.textContent = 'Send Instant Message';
+                return;
+            }
+
+            // 1. Instantly construct and trigger WhatsApp link to prevent popup blocker
+            const text = `*New Portfolio Message*%0A%0A*Name:* ${encodeURIComponent(name)}%0A*Email:* ${encodeURIComponent(email)}%0A*Message:* ${encodeURIComponent(message)}`;
             const whatsappUrl = `https://wa.me/Ayubabright1?s=t&text=${text}`;
-
             window.open(whatsappUrl, '_blank');
 
-            // 2. Dispatch payload to backend API to log & email directly to ayubagarba@savilinks.com
+            // 2. Concurrently dispatch payload to backend API to log & email directly to ayubagarba@savilinks.com
             try {
                 await fetch('/api/messages', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        name: formData.name,
-                        email: formData.email,
-                        message: formData.message,
-                        role: formData.message,
+                        name,
+                        email,
+                        message,
+                        role: message,
                         recipient: 'ayubagarba@savilinks.com'
                     })
                 });
             } catch (err) {
-                console.log('Recorded fallback payload.');
+                console.error('Email dispatch note:', err);
             }
 
+            // 3. Show success confirmation, reset form, and dismiss modal
+            alert('Message sent successfully! Opening WhatsApp and dispatching email.');
             quickForm.reset();
             if (btn) btn.textContent = 'Send Instant Message';
-            closeQuickMessageModal();
-            showGlassToast('Thank you — message dispatched to email & WhatsApp!', '✓');
+            if (typeof window.closeQuickMessageModal === 'function') {
+                window.closeQuickMessageModal();
+            }
+            if (typeof window.showGlassToast === 'function') {
+                window.showGlassToast('Thank you — message dispatched to email & WhatsApp!', '✓');
+            }
         });
     }
 

@@ -1326,15 +1326,15 @@
             <form id="quick-message-form" class="space-y-4">
                 <div>
                     <label class="form-label">Your Name</label>
-                    <input type="text" id="qm-name" required placeholder="Your full name" class="form-input text-xs">
+                    <input type="text" id="qm-name" name="name" required placeholder="Your full name" class="form-input text-xs">
                 </div>
                 <div>
                     <label class="form-label">Your Email</label>
-                    <input type="email" id="qm-email" required placeholder="your.email@domain.com" class="form-input text-xs">
+                    <input type="email" id="qm-email" name="email" required placeholder="your.email@domain.com" class="form-input text-xs">
                 </div>
                 <div>
                     <label class="form-label">Message / Inquiry</label>
-                    <textarea id="qm-message" rows="3" required placeholder="Describe your project, timeline, or engineering inquiry..." class="form-textarea text-xs"></textarea>
+                    <textarea id="qm-message" name="message" rows="3" required placeholder="Describe your project, timeline, or engineering inquiry..." class="form-textarea text-xs"></textarea>
                 </div>
                 <button type="submit" id="qm-submit-btn" class="btn-primary-glow text-xs py-3">
                     Send Instant Message
