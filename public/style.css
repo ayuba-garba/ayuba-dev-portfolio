@@ -635,66 +635,112 @@ body {
   border-color: rgba(124, 58, 237, 0.25);
 }
 
-/* Mobile Nav Toggle Button */
-.mobile-nav-toggle {
+/* ==========================================================================
+   iOS-STYLE BOTTOM MOBILE NAVIGATION DOCK (< 768px)
+   ========================================================================== */
+.mobile-bottom-dock {
   display: none;
-  background: transparent;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 9999px;
-  padding: 0.45rem;
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-/* Mobile Menu Drawer */
-.mobile-drawer {
   position: fixed;
-  inset: 0;
-  top: 4.8rem;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  z-index: 95;
-  padding: 2rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
-}
-
-.mobile-drawer.open {
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.mobile-nav-items {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.mobile-nav-item {
-  display: flex;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2rem);
+  max-width: 440px;
+  z-index: 99;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-radius: 16px;
-  background: #f8fafc;
+  justify-content: space-around;
+  padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  color: var(--text-primary);
-  text-decoration: none;
-  font-size: 1.15rem;
-  font-weight: 700;
-  transition: all 0.2s ease;
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.mobile-nav-item:hover {
-  background: rgba(124, 58, 237, 0.06);
-  border-color: rgba(124, 58, 237, 0.2);
+.dock-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  padding: 0.4rem 0.25rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 600;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dock-item span {
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.dock-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.22s ease;
+}
+
+.dock-item:hover {
+  color: #121212;
+}
+
+.dock-item.active {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+  font-weight: 700;
+}
+
+.dock-item.active .dock-icon {
+  stroke: #7c3aed;
+  transform: translateY(-1px) scale(1.1);
+}
+
+.dock-item.active[data-route="projects"],
+.dock-item.active-projects {
+  color: #0284c7;
+  background: rgba(14, 165, 233, 0.08);
+}
+.dock-item.active[data-route="projects"] .dock-icon,
+.dock-item.active-projects .dock-icon {
+  stroke: #0284c7;
+}
+
+.dock-item.active[data-route="experience"],
+.dock-item.active-experience {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+}
+.dock-item.active[data-route="experience"] .dock-icon,
+.dock-item.active-experience .dock-icon {
+  stroke: #7c3aed;
+}
+
+.dock-item.active[data-route="about"],
+.dock-item.active-about {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.08);
+}
+.dock-item.active[data-route="about"] .dock-icon,
+.dock-item.active-about .dock-icon {
+  stroke: #059669;
+}
+
+.dock-item.active[data-route="connect"],
+.dock-item.active-connect {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+}
+.dock-item.active[data-route="connect"] .dock-icon,
+.dock-item.active-connect .dock-icon {
+  stroke: #7c3aed;
 }
 
 /* Floating Action Button (FAB) */
@@ -1824,8 +1870,21 @@ footer {
   .nav-links-wrap {
     display: none;
   }
-  .mobile-nav-toggle {
-    display: block;
+  /* iOS Bottom Dock Activation */
+  .mobile-bottom-dock {
+    display: flex;
+  }
+
+  body {
+    padding-bottom: 5.5rem;
+  }
+
+  /* Reposition FAB on mobile so it doesn't collide with the dock */
+  .fab-trigger {
+    bottom: 5.5rem;
+    right: 1.25rem;
+    padding: 0.6rem 0.95rem;
+    font-size: 0.75rem;
   }
 
   /* Split Layouts Collapse to 1 Column */

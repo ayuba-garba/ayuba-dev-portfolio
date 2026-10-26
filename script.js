@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const views = document.querySelectorAll('.spa-view');
-    const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-item');
+    const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-item, .dock-item');
     const internalNavbar = document.getElementById('internal-navbar');
     const fabTrigger = document.getElementById('fab-contact-trigger');
 
@@ -127,10 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 3. Update Nav Links Active State
+        // 3. Update Nav Links & Mobile Dock Active State
         navLinks.forEach(link => {
             const linkRoute = link.getAttribute('data-route');
-            if (linkRoute === routeKey) {
+            if (linkRoute === routeKey || (linkRoute === 'hub' && routeKey === '')) {
                 link.classList.add('active');
                 if (routeInfo.accent) {
                     link.classList.add(`active-${routeInfo.accent}`);
@@ -194,24 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.addEventListener('mousemove', updateAmbientSpotlight, { passive: true });
 
-    // =========================================================================
-    // 3. MOBILE NAVIGATION DRAWER TOGGLE
-    // =========================================================================
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    const mobileDrawer = document.getElementById('mobile-drawer');
 
-    if (mobileMenuBtn && mobileDrawer) {
-        mobileMenuBtn.addEventListener('click', () => {
-            const isOpen = mobileDrawer.classList.contains('open');
-            if (isOpen) {
-                mobileDrawer.classList.remove('open');
-                document.body.style.overflow = '';
-            } else {
-                mobileDrawer.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-        });
-    }
 
     // =========================================================================
     // 4. EXPERIENCE VIEW: TIMELINE READ MORE ACCORDION
