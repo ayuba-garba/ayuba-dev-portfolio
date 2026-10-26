@@ -587,15 +587,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('qm-submit-btn');
             if (btn) btn.textContent = 'Sending...';
 
-            const name = document.getElementById('qm-name').value;
-            const email = document.getElementById('qm-email').value;
-            const message = document.getElementById('qm-message').value;
+            const formData = {
+                name: document.getElementById('qm-name')?.value?.trim() || '',
+                email: document.getElementById('qm-email')?.value?.trim() || '',
+                message: document.getElementById('qm-message')?.value?.trim() || ''
+            };
 
+            // 1. Instantly construct and open pre-filled WhatsApp chat link in a new tab
+            const name = encodeURIComponent(formData.name);
+            const email = encodeURIComponent(formData.email);
+            const message = encodeURIComponent(formData.message);
+
+            const text = `*New Portfolio Message*%0A%0A*Name:* ${name}%0A*Email:* ${email}%0A*Message:* ${message}`;
+            const whatsappUrl = `https://wa.me/Ayubabright1?s=t&text=${text}`;
+
+            window.open(whatsappUrl, '_blank');
+
+            // 2. Dispatch payload to backend API to log & email directly to ayubagarba@savilinks.com
             try {
                 await fetch('/api/messages', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, role: message })
+                    body: JSON.stringify({
+                        name: formData.name,
+                        email: formData.email,
+                        message: formData.message,
+                        role: formData.message,
+                        recipient: 'ayubagarba@savilinks.com'
+                    })
                 });
             } catch (err) {
                 console.log('Recorded fallback payload.');
@@ -605,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn) btn.textContent = 'Send Instant Message';
             if (quickModal) quickModal.classList.remove('active');
             document.body.style.overflow = '';
-            showGlassToast('Thank you — your message has been received.', '✓');
+            showGlassToast('Thank you — message dispatched to email & WhatsApp!', '✓');
         });
     }
 

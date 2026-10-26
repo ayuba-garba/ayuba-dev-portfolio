@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const MONGO_URI = process.env.MONGO_URI;
+const PRIMARY_RECIPIENT_EMAIL = process.env.RECIPIENT_EMAIL || 'ayubagarba@savilinks.com';
 
 if (MONGO_URI) {
     mongoose.connect(MONGO_URI)
@@ -39,11 +40,47 @@ function sanitizeInput(val, maxLength = 2000) {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// 📧 Mail Notification Dispatcher (Target: ayubagarba@savilinks.com)
+let mailer = null;
+try {
+    mailer = require('nodemailer');
+} catch (e) {
+    // Graceful fallback when nodemailer is not installed in runtime environment
+}
+
+async function sendEmailNotification({ name, email, message, scope }) {
+    console.log(`📧 [EMAIL DISPATCH] Target: ${PRIMARY_RECIPIENT_EMAIL} | From: "${name}" <${email}> | Scope: ${scope || 'Quick Message'}`);
+    if (mailer && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        try {
+            const transporter = mailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: parseInt(process.env.SMTP_PORT || '587', 10),
+                secure: process.env.SMTP_SECURE === 'true',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS
+                }
+            });
+            await transporter.sendMail({
+                from: process.env.SMTP_FROM || `Portfolio Gateway <${process.env.SMTP_USER}>`,
+                to: PRIMARY_RECIPIENT_EMAIL,
+                replyTo: email,
+                subject: `New Portfolio Message from ${name}`,
+                text: `New Portfolio Message:\n\nName: ${name}\nEmail: ${email}\nScope: ${scope || 'Quick Message'}\n\nMessage:\n${message}`,
+                html: `<h3>New Portfolio Message</h3><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Scope:</strong> ${scope || 'Quick Message'}</p><p><strong>Message:</strong><br>${message.replace(/\n/g, '<br>')}</p>`
+            });
+            console.log(`✅ [EMAIL DISPATCH] Successfully delivered email to ${PRIMARY_RECIPIENT_EMAIL}`);
+        } catch (err) {
+            console.error('⚠️ [EMAIL DISPATCH] Mail transport error:', err.message);
+        }
+    }
+}
+
 // 📁 CORRECT PATHING: Serves all static files out of your /public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 📬 Route: Asynchronous Form Submission Endpoint (Netlify / Root POST)
-app.post('/', (req, res) => {
+app.post('/', async (req, res) => {
     const rawName = req.body?.name;
     const rawEmail = req.body?.email;
     const rawScope = req.body?.scope;
@@ -58,7 +95,8 @@ app.post('/', (req, res) => {
         return res.status(400).json({ error: 'Valid name, email address, and message are required.' });
     }
 
-    console.log('📥 Form Payload Captured:', { name, email, scope, messageLength: message.length });
+    console.log('📥 Form Payload Captured for', PRIMARY_RECIPIENT_EMAIL, ':', { name, email, scope, messageLength: message.length });
+    await sendEmailNotification({ name, email, message, scope });
     res.status(200).send('OK');
 });
 
@@ -81,14 +119,17 @@ const handleMessagePost = async (req, res) => {
             return res.status(400).json({ error: 'A valid email address is required.' });
         }
 
+        // Trigger email notification to primary recipient ayubagarba@savilinks.com
+        await sendEmailNotification({ name, email, message: role, scope: 'Quick Message Dispatch' });
+
         if (MONGO_URI && mongoose.connection.readyState === 1) {
             const newMessage = new Message({ name, email, role });
             await newMessage.save();
-            return res.status(201).json({ id: newMessage._id, success: true });
+            return res.status(201).json({ id: newMessage._id, success: true, recipient: PRIMARY_RECIPIENT_EMAIL });
         } else {
             const record = { id: Date.now().toString(), name, email, role, createdAt: new Date() };
             memoryMessages.push(record);
-            return res.status(201).json({ id: record.id, success: true });
+            return res.status(201).json({ id: record.id, success: true, recipient: PRIMARY_RECIPIENT_EMAIL });
         }
     } catch (error) {
         // Sanitize output: Never leak internal error stacks or connection details to client
