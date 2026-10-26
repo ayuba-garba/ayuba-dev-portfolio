@@ -680,8 +680,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 1. Instantly construct and trigger WhatsApp link directly in click/submit flow to prevent popup blocker
-            const text = `*New Portfolio Message*%0A%0A*Name:* ${encodeURIComponent(name)}%0A*Email:* ${encodeURIComponent(email)}%0A*Message:* ${encodeURIComponent(message)}`;
-            const whatsappUrl = `https://wa.me/Ayubabright1?s=t&text=${text}`;
+            const whatsappNumber = '2348034108158';
+            const text = `*New Quick Message*%0A%0A*Name:* ${encodeURIComponent(name)}%0A*Email:* ${encodeURIComponent(email)}%0A*Message:* ${encodeURIComponent(message)}`;
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${text}`;
             window.open(whatsappUrl, '_blank');
 
             // 2. Concurrently dispatch payload to Netlify Forms (and fallback to Node backend /api/messages)
