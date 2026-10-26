@@ -1,0 +1,9 @@
+# Ignore vendor/third-party HTML from GitHub language statistics
+*.html linguist-detectable=false
+*.htm linguist-detectable=false
+
+# Set project language explicitly
+*.js linguist-detectable=true
+*.jsx linguist-detectable=true
+*.ts linguist-detectable=true
+*.tsx linguist-detectable=true
