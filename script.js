@@ -113,17 +113,23 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Update Document Title
         document.title = routeInfo.title;
 
-        // 2. Switch View Visibility with Smooth Opacity/Scale Transition
-        views.forEach(v => {
+        // 2. Switch View Visibility with Instant Fallback & Solid State Activation
+        const currentViews = document.querySelectorAll('.spa-view');
+        currentViews.forEach(v => {
             if (v.id === routeInfo.viewId) {
-                v.style.display = 'block';
-                // Trigger reflow for transition
-                requestAnimationFrame(() => {
-                    v.classList.add('active');
-                });
+                const isHubDesktop = (v.id === 'view-hub' && window.innerWidth > 768);
+                v.style.display = isHubDesktop ? 'flex' : 'block';
+                v.classList.add('active');
+                v.style.opacity = '1';
+                v.style.visibility = 'visible';
+                v.style.transform = 'none';
+                v.style.pointerEvents = 'auto';
             } else {
                 v.classList.remove('active');
                 v.style.display = 'none';
+                v.style.opacity = '0';
+                v.style.visibility = 'hidden';
+                v.style.pointerEvents = 'none';
             }
         });
 
@@ -171,9 +177,34 @@ document.addEventListener('DOMContentLoaded', () => {
             closeStoryReader();
         }
 
-        // Smooth scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Instant scroll to top on route change to prevent blank scroll offsets
+        window.scrollTo(0, 0);
     }
+
+    // Expose renderView helper and global router binding
+    function renderView(routeKey) {
+        return switchView(routeKey);
+    }
+    window.renderView = renderView;
+    window.switchView = switchView;
+
+    // Direct event delegation for all internal route links to guarantee instant response
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[data-route], a[href^="#/"]');
+        if (link) {
+            const href = link.getAttribute('href');
+            const dataRoute = link.getAttribute('data-route');
+            let target = '';
+            if (dataRoute !== null && dataRoute !== undefined) {
+                target = dataRoute === 'hub' ? '' : dataRoute;
+            } else if (href && href.startsWith('#/')) {
+                target = href.replace(/^#\/?/, '').trim();
+            }
+            if (routes[target] !== undefined) {
+                switchView(target);
+            }
+        }
+    });
 
     // Hash Change Event & Initial Load
     window.addEventListener('hashchange', () => {
