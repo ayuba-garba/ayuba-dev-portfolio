@@ -4,6 +4,34 @@
  * Architecture Case Studies, Certificate Inspector, and Form Gateways
  */
 
+// Immediate top-level exports for bulletproof inline/mobile invocation
+window.openQuickMessageModal = function(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const modal = document.getElementById('quickMessageModal') || document.getElementById('quick-message-modal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.style.opacity = '1';
+        modal.style.visibility = 'visible';
+        modal.style.pointerEvents = 'auto';
+        document.body.style.overflow = 'hidden';
+        const nameInp = document.getElementById('qm-name');
+        if (nameInp) setTimeout(() => nameInp.focus(), 80);
+    }
+};
+
+window.closeQuickMessageModal = function(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const modal = document.getElementById('quickMessageModal') || document.getElementById('quick-message-modal');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        modal.style.opacity = '';
+        modal.style.visibility = '';
+        document.body.style.overflow = '';
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================================================

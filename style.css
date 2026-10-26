@@ -740,8 +740,9 @@ body {
 
 .fab-trigger *,
 #fab-contact-trigger *,
-#quick-message * {
-  pointer-events: none;
+#quick-message *,
+[data-fab="quick-message"] * {
+  pointer-events: none !important;
 }
 
 /* ==========================================================================
@@ -2030,7 +2031,8 @@ footer {
 
   .fab-trigger *,
   #fab-contact-trigger *,
-  #quick-message * {
+  #quick-message *,
+  [data-fab="quick-message"] * {
     pointer-events: none !important;
   }
 
