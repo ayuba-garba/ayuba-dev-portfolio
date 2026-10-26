@@ -1,49 +1,35 @@
-# Decode Labs Backend - Week 2 Project
+# Student Records Microservice API
 
-A functional, lightweight local backend application built with **Node.js** and the **Express** framework. This project serves as a foundational REST API designed to store and manage student intern profiles dynamically.
+> A lightweight, stateless RESTful service engineered with Node.js and Express to handle student profile provisioning, payload schema validation, and lifecycle management.
 
----
-
-## 🛠️ Tech Stack & Tools Used
-* **Runtime Environment:** Node.js
-* **Web Framework:** Express.js
-* **API Testing Tool:** Thunder Client (VS Code Extension)
-* **Version Control:** Git & GitHub
+[![Runtime](https://img.shields.io/badge/Node.js-18.x%2B-green.svg)]()
+[![Framework](https://img.shields.io/badge/Express-4.x-lightgrey.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
-## 🚀 Features & Logic Built
-* **JSON Parsing Middleware:** Configured to instantly accept incoming request data packages.
-* **Data Validation Security:** Blocks incomplete input objects immediately to avoid data corruption.
-* **Dynamic Data Storage:** Simulates a local data system via a stateful runtime array.
+## 🏛️ Architecture & Core Mechanics
+
+This service exposes structured RESTful endpoints for student entity creation and querying:
+- **Middleware Pipeline:** Configured with `express.json()` body-parsing middleware for non-blocking payload handling.
+- **Request Validation:** Enforces strict field requirements (`name`, `role`) before persisting records, returning deterministic `400 Bad Request` responses on incomplete data packages.
+- **State Management:** Operates on an in-memory runtime store optimized for rapid prototyping and unit testing without database dependencies.
 
 ---
 
-## 📡 API Endpoints Developed
+## 📡 API Endpoints
 
-### 1. Fetch All Students
-* **Method:** `GET`
-* **URL Path:** `/api/students`
-* **Success Status:** `200 OK`
+### 1. Retrieve All Records
+- **Method:** `GET`
+- **Path:** `/api/students`
+- **Response:** `200 OK`
 
-### 2. Register New Student
-* **Method:** `POST`
-* **URL Path:** `/api/students`
-* **Required Body Payload (JSON):**
-    ```json
-    {
-      "name": "Student Name",
-      "role": "Intern Assignment"
-    }
-    ```
-* **Success Status:** `201 Created`
-
----
-
-## ⚙️ How to Install and Run Locally
-
-1. Clone this repository to your desktop machine.
-2. Open your terminal in the root folder and restore dependency tools:
-   ```bash
-   npm install
-   
+### 2. Register Record
+- **Method:** `POST`
+- **Path:** `/api/students`
+- **Payload:**
+  ```json
+  {
+    "name": "Alex Mercer",
+    "role": "Systems Engineering Intern"
+  }
