@@ -7,6 +7,84 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================================================
+    // 0. CINEMATIC WELCOME SLIDESHOW OVERLAY (#intro-slides)
+    // =========================================================================
+    const introOverlay = document.getElementById('intro-slides');
+    const enterBtn = document.getElementById('btn-enter');
+    const introSlides = document.querySelectorAll('.intro-slide');
+    const introIndicators = document.querySelectorAll('.slide-indicators .indicator');
+
+    if (introOverlay && introSlides.length > 0) {
+        let currentSlideIdx = 0;
+        let slideTimer = null;
+        let isDismissed = false;
+
+        function showSlide(index) {
+            if (isDismissed) return;
+            currentSlideIdx = (index + introSlides.length) % introSlides.length;
+
+            introSlides.forEach((slide, idx) => {
+                if (idx === currentSlideIdx) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            introIndicators.forEach((ind, idx) => {
+                if (idx === currentSlideIdx) {
+                    ind.classList.add('active');
+                } else {
+                    ind.classList.remove('active');
+                }
+            });
+
+            const currentDuration = parseInt(introSlides[currentSlideIdx].getAttribute('data-duration'), 10) || 2600;
+
+            if (slideTimer) clearTimeout(slideTimer);
+
+            slideTimer = setTimeout(() => {
+                if (isDismissed) return;
+                if (currentSlideIdx >= introSlides.length - 1) {
+                    dismissIntro();
+                } else {
+                    showSlide(currentSlideIdx + 1);
+                }
+            }, currentDuration);
+        }
+
+        function dismissIntro() {
+            if (isDismissed) return;
+            isDismissed = true;
+            if (slideTimer) clearTimeout(slideTimer);
+
+            introOverlay.classList.add('dismissed');
+            setTimeout(() => {
+                introOverlay.style.display = 'none';
+            }, 850);
+        }
+
+        if (enterBtn) {
+            enterBtn.addEventListener('click', dismissIntro);
+        }
+
+        introIndicators.forEach((ind, idx) => {
+            ind.addEventListener('click', () => {
+                showSlide(idx);
+            });
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (!isDismissed && (e.key === 'Escape' || e.key === 'Enter')) {
+                dismissIntro();
+            }
+        });
+
+        // Start initial slide timer
+        showSlide(0);
+    }
+
+    // =========================================================================
     // 1. LIGHTWEIGHT CLIENT-SIDE SPA ROUTER & STATE MACHINE
     // =========================================================================
     const routes = {

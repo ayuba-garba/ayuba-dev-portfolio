@@ -85,6 +85,46 @@
 </head>
 <body class="bg-[#060814] text-[#94a3b8] antialiased selection:bg-[#3b82f6] selection:text-white min-h-screen relative font-sans">
 
+    <!-- Cinematic Welcome Slideshow Overlay -->
+    <div id="intro-slides" class="intro-overlay" role="dialog" aria-label="Welcome Slideshow">
+      <div class="slideshow-glow-backdrop"></div>
+      <div class="slideshow-container">
+        
+        <!-- Slide 1 -->
+        <div class="intro-slide active" data-duration="2400">
+          <span class="slide-badge">SYSTEM INITIALIZATION</span>
+          <h1 class="slide-title">Hello &amp; Welcome</h1>
+          <p class="slide-subtitle">Preparing your engineering &amp; architecture dashboard...</p>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="intro-slide" data-duration="2800">
+          <span class="slide-badge">ARCHITECTURAL FOCUS</span>
+          <h1 class="slide-title">Engineering Reliable Systems</h1>
+          <p class="slide-subtitle">Welcome to the interactive portfolio of <strong>Ayuba Garba</strong>.</p>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="intro-slide" data-duration="2600">
+          <span class="slide-badge">PRODUCTION READY</span>
+          <h1 class="slide-title">Full-Stack &amp; Distributed Systems</h1>
+          <p class="slide-subtitle">Explore scalable web platforms, backend APIs, and intelligent automation.</p>
+        </div>
+
+        <!-- Progress Indicators -->
+        <div class="slide-indicators" aria-hidden="true">
+          <span class="indicator active" data-slide="0"></span>
+          <span class="indicator" data-slide="1"></span>
+          <span class="indicator" data-slide="2"></span>
+        </div>
+
+        <!-- Enter Dashboard Trigger (Always clickable so users can skip or enter at any time) -->
+        <button id="btn-enter" type="button" class="btn-enter-dashboard">
+          Enter Dashboard &rarr;
+        </button>
+      </div>
+    </div>
+
     <!-- Atmospheric Film Grain Overlay -->
     <div class="noise-overlay" aria-hidden="true"></div>
 

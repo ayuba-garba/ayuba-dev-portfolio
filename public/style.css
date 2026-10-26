@@ -1642,3 +1642,182 @@ body {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   CINEMATIC WELCOME SLIDESHOW OVERLAY (#intro-slides)
+   ========================================================================== */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(10, 14, 39, 0.96) 0%, rgba(6, 8, 20, 0.99) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  padding: 1.5rem;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.intro-overlay.dismissed {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(1.05);
+}
+
+.slideshow-glow-backdrop {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  opacity: 0.45;
+  background: radial-gradient(circle, #3b82f6 0%, #8b5cf6 50%, #ec4899 80%, transparent 100%);
+  animation: pulseBeacon 6s ease-in-out infinite;
+}
+
+.slideshow-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 600px;
+  padding: 3.5rem 2.5rem;
+  text-align: center;
+  border-radius: 28px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  animation: introPop 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes introPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.intro-slide {
+  display: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.intro-slide.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.slide-badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.35rem 0.95rem;
+  border-radius: 9999px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1.35rem;
+}
+
+.slide-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 0.85rem;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.slide-subtitle {
+  font-size: 1.02rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0 auto 2.25rem;
+  max-width: 460px;
+}
+
+.slide-subtitle strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.slide-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 2rem;
+}
+
+.slide-indicators .indicator {
+  width: 26px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-indicators .indicator.active {
+  width: 48px;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
+}
+
+.btn-enter-dashboard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2.25rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #ffffff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 25px rgba(14, 165, 233, 0.35);
+}
+
+.btn-enter-dashboard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 35px rgba(14, 165, 233, 0.55);
+  border-color: rgba(56, 189, 248, 0.8);
+}
+
+.btn-enter-dashboard:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .slideshow-container {
+    padding: 2.5rem 1.5rem;
+  }
+  .slide-title {
+    font-size: 1.75rem;
+  }
+  .slide-subtitle {
+    font-size: 0.92rem;
+  }
+}
